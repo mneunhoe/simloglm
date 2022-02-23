@@ -12,7 +12,7 @@ Authors@R:
            role = c("aut", "cre"),
            email = "orittman@mail.uni-mannheim.de",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: Functions to simulate the correct quantities of interest from linear re
+Description: Functions to simulate the correct quantities of interest from linear
     regression models with logged dependent variables. This paper accompanies the paper "Title here".
 License: MIT + file LICENSE
 Encoding: UTF-8
