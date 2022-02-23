@@ -1,16 +1,24 @@
 Package: simloglm
-Title: What the Package Does (One Line, Title Case)
+Title: Simulate Correct Quantities of Interest from Linear Models with Logged Dependent Variables
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Marcel",
+           family = "Neunhoeffer",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
+           email = "marcel.neunhoeffer@stat.uni-muenchen.de",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    person(given = "Oliver",
+           family = "Rittmann",
+           role = c("aut", "cre"),
+           email = "orittman@mail.uni-mannheim.de",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: Functions to simulate the correct quantities of interest from linear re
+    regression models with logged dependent variables. This paper accompanies the paper "Title here".
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
