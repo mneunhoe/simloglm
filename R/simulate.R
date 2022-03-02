@@ -60,14 +60,14 @@ simulate <- function(input_obj,
     }
 
     # Same as in predict.lm
-    tt <- terms(input_obj)
+    tt <- stats::terms(input_obj)
 
 
-    Terms <- delete.response(tt)
-    m <- model.frame(Terms, scen, na.action = na.pass,
+    Terms <- stats::delete.response(tt)
+    m <- stats::model.frame(Terms, scen, na.action = stats::na.pass,
                      xlev = input_obj$xlevels)
 
-    X <- model.matrix(Terms, m, contrasts.arg = input_obj$contrasts)
+    X <- stats::model.matrix(Terms, m, contrasts.arg = input_obj$contrasts)
   } else if (is.list(scenario) & class(input_obj) != "lm") {
     stop(
       "Passing a list for the scenario only works with a lm object. \nPlease provide a valid model matrix."

@@ -1,9 +1,9 @@
 lm_to_obj <- function(lm_obj){
   # extract model parameters
-  beta_hat <- coef(lm_obj)
-  varcov_hat <- vcov(lm_obj)
+  beta_hat <- stats::coef(lm_obj)
+  varcov_hat <- stats::vcov(lm_obj)
   sigma_hat <- summary(lm_obj)$sigma
-  n <- length(residuals(lm_obj))
+  n <- length(stats::residuals(lm_obj))
   k <- length(beta_hat)
 
   return(list(beta_hat = beta_hat,
@@ -22,12 +22,12 @@ sim_param <- function(nsim,
                       k){
   beta_sim <- MASS::mvrnorm(nsim, beta_hat, varcov_hat)
   #sigma2_sim <- sigma_hat^2 * (n-k) / rchisq(nsim_est, n-k)
-  sigma2_sim <- rgamma(nsim, shape = (n-k)/2, rate = (n-k)/(2*sigma_hat^2))
+  sigma2_sim <- stats::rgamma(nsim, shape = (n-k)/2, rate = (n-k)/(2*sigma_hat^2))
   return(list(betas = beta_sim, sigma = sigma2_sim))
 }
 
 sim_logy <- function(nsim, E_log_Y, sigma, exponentiate = TRUE){
-  logY_sim <- rnorm(nsim,
+  logY_sim <- stats::rnorm(nsim,
                     E_log_Y,
                     sigma)
   if (exponentiate == TRUE){return(exp(logY_sim))}
