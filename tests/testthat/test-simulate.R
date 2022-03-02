@@ -1,3 +1,13 @@
-test_that("strsplit1() splits a string", {
-  expect_equal(strsplit1("a,b,c", split = ","), c("a", "b", "c"))
+test_that("simulate() works with a lm object", {
+  expect_equal(length(simulate(lm(
+    log(dist) ~ speed, data = cars
+  ))$geometric_mean), 1000)
 })
+
+test_that("simulate() works with a lm object and a list scenario", {
+  expect_equal(nrow(simulate(
+    lm(log(dist) ~ speed, data = cars), scenario = list(speed = c(5, 10))
+  )$geometric_mean), 1000)
+})
+
+
