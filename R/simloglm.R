@@ -1,4 +1,4 @@
-#' Split a string
+#' Simulate from a linear regression model with a logged dependent variable
 #'
 #' @param input_obj Either a list of class "lm" (the output from a call to lm) or a user provided list with the following entries beta_hat (the estimated regression coefficients),
 #' varcov_hat (the estimated variance covariance matrix), sigma_hat (the estimated residual standard error), n (the number of observations) and k (the number of regression coefficients).
@@ -14,10 +14,10 @@
 #' df <- cars
 #' regression <- lm(log(dist)~speed, data = df)
 #' # Specifiying no scenario to simulate at the mean of speed.
-#' simulate(regression)
+#' simloglm(regression)
 #' # Explicitily specifying a scenario.
-#' simulate(regression, scenario = list(speed = c(5, 10, 20)))
-simulate <- function(input_obj,
+#' simloglm(regression, scenario = list(speed = c(5, 10, 20)))
+simloglm <- function(input_obj,
                      nsim_est = 1000,
                      nsim_fund = 1000,
                      scenario = NULL,
