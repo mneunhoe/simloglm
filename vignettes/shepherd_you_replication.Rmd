@@ -1,0 +1,183 @@
+---
+title: "Replication of Shepherd/You 2020"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{shepherd_you_replication}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(simloglm)
+```
+
+```{r Useful functions}
+# Clustered Standard Errors
+# Function according to Arai:
+
+clx <- function(fm, dfcw, cluster) {
+  require(sandwich)
+  require(lmtest)
+  require(zoo)
+  
+  M <- length(unique(cluster)) # Number of Clusters
+  N <- length(cluster) # Number of Observations
+  
+  dfc <-
+    (M / (M - 1)) * ((N - 1) / (N - fm$rank)) # Adjust degrees of freedom
+  
+  u <- apply(estfun(fm), 2, function(x)
+    tapply(x, cluster, sum))
+  
+  vcovCL <- dfc * sandwich (fm, meat = crossprod(u) / N) * dfcw
+  
+  print(coeftest(fm, vcovCL)) # Print Results to console
+  
+  return(vcovCL) # Return Variance-Covariance Matrix
+}
+```
+
+
+```{r Preprocessing}
+df <- shepherd_you_2020
+
+eps <- 1
+
+df$ln_meansalary <- log(df$meansalary + eps)
+df$nolobstaff <- df$numstaff - df$futurelob
+
+df$femaleratio <- df$numfemale / df$numstaff
+
+summary(df$les)
+sum(df$les == 0)
+hist(df$les)
+
+df$lnles <- log(df$les + eps)
+df$lntotbill <- log(df$totbill + eps)
+df$lnssbill <- log(df$ss_bills + eps)
+
+```
+
+```{r Model}
+# Define the Model Formulas
+
+member_char1 <-
+  c(
+    "majority dwnom1 budget chair subchr seniority maj_leader min_leader power dem membecamelob female afam latino state_leg south_dem"
+  )
+member_char1 <- gsub(" ", " + ", member_char1)
+
+member_char2 <-
+  c("majority dwnom1 budget chair subchr seniority maj_leader min_leader power")
+member_char2 <- gsub(" ", " + ", member_char2)
+
+staff_char1 <-
+  c("ln_meansalary nolobstaff futurelob cstaff_lob femaleratio")
+staff_char1 <- gsub(" ", " + ", staff_char1)
+
+ff <-
+  paste0("lnles ~ ",
+         staff_char1,
+         " + ",
+         member_char2,
+         " + as.factor(congress) + as.factor(icpsr)")
+
+# Run Model 4
+
+m4 <- lm(ff, data = df)
+
+vcovCL <-
+  clx(m4, 1, m4$model$'as.factor(icpsr)') # Clustered Variance-Covariance Matrix
+
+
+
+# Residualize Treatment for interpretation according to
+
+est <- m4$model
+colnames(est)[16:17] <- c("congress", "icpsr")
+
+## make an object that is the variable name of the treatment
+
+x <- "futurelob"
+
+## store the coefficient estimate
+
+b <- m4$coefficients[x]
+x.resid <-
+  lm(
+    futurelob ~ ln_meansalary + nolobstaff  + cstaff_lob + femaleratio + majority + dwnom1 + budget + chair + subchr + seniority + maj_leader + min_leader + power + factor(congress) + factor(icpsr),
+    data = est
+  )$residuals
+
+reg2 <- lm(est$lnles ~ x.resid)
+
+
+y.resid <-
+  lm(
+    lnles ~ ln_meansalary + nolobstaff  + cstaff_lob + femaleratio + majority + dwnom1 + budget + chair + subchr + seniority + maj_leader + min_leader + power + factor(congress) + factor(icpsr),
+    data = est
+  )$residuals
+
+reg3 <- lm(y.resid ~ x.resid)
+
+# Range of original treatment variable (futurelob)
+range(est[, x])
+
+# SD of original treatment variable (futurelob)
+(sdx <- sd(est[, x]))
+
+# SD of residualized Treatment
+(sdxresid <- sd(x.resid))
+round(sdxresid, 2)
+
+
+# Simulation
+
+colnames(m4$model)[16:17] <- c("congress", "icpsr")
+
+# Extract Model Frame
+mf <- model.frame(ff, m4$model)
+
+# Transform to Model Frame to Design Matrix
+mm <- model.matrix(as.formula(ff), mf)
+
+# Average Case Approach, Baseline all set to its mean
+scenario <- apply(mm, 2, mean)
+
+# Average Case Approach, 1 SD increase in futurelob
+scenario_sd <- scenario
+scenario_sd["futurelob"] <- scenario_sd["futurelob"] + sdxresid
+
+# Combine the two scenarios in one matrix
+scenario <- rbind(scenario, scenario_sd)
+dim(scenario)
+colnames(scenario)
+results <- simloglm(m4, X = scenario, offset = eps, predicted_values = T)
+
+par(mfrow = c(3, 1))
+hist(apply(results$predicted_values[[2]], 1, median)- apply(results$predicted_values[[1]], 1, median))
+hist(as.numeric(results$geometric_mean[,2] - results$geometric_mean[,1]))
+hist(results$arithmetic_mean[,2] - results$arithmetic_mean[,1])
+
+hist(results$geometric_mean[,2]/results$geometric_mean[,1])
+
+cbind(as.numeric(results$geometric_mean[,2]), apply(results$predicted_values[[2]], 1, median))
+
+par(mfrow = c(3, 1))
+hist(as.numeric(results$geometric_mean[,2]))
+hist( apply(results$predicted_values[[2]], 1, median))
+hist(as.numeric(results$arithmetic_mean[,2]), breaks = 50000000, xlim = c(0, 1.5))
+
+mean(df$les)
+
+log(as.complex(0))
+
+```
+

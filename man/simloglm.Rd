@@ -9,7 +9,9 @@ simloglm(
   nsim_est = 1000,
   nsim_fund = 1000,
   scenario = NULL,
-  logged_dv = TRUE
+  X = NULL,
+  logged_dv = TRUE,
+  predicted_values = FALSE
 )
 }
 \arguments{
@@ -23,10 +25,14 @@ The list can be provided for more flexibility. Most users will call simulate dir
 
 \item{scenario}{Named list with values (scalar or vector, the vectors need to be of the same length) for each independent variable (names must match the names of the variables in the regression model) of scenarios for which predictions of the regression model should be calculated. (Default is at the mean for all variables only works when using a lm object.)}
 
+\item{X}{Sometimes it is easier to directly pass the scenario as a model matrix (e.g. when you want to set the average of factors), this overrides any scenario specified under scenario. (Default is NULL)}
+
 \item{logged_dv}{Is the dependent variable in the linear model logged? (Default is TRUE.)}
+
+\item{predicted_values}{Do you also want to output predicted values? (Default is FALSE. The resulting object can be very big.)}
 }
 \value{
-A list with two matrices (geometric_mean and arithmetic_mean) with each nsim_est rows and number of scenarios columns.
+A list of class "simloglm" with two matrices (geometric_mean and arithmetic_mean) with each nsim_est rows and number of scenarios columns and a matrix of predicted values if desired.
 }
 \description{
 Simulate from a linear regression model with a logged dependent variable
