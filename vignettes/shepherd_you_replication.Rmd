@@ -46,22 +46,17 @@ clx <- function(fm, dfcw, cluster) {
 
 
 ```{r Preprocessing}
-df <- shepherd_you_2020
+df <- simloglm::shepherd_you_2020
 
-eps <- 1
-
-df$ln_meansalary <- log(df$meansalary + eps)
+df$ln_meansalary <- log(df$meansalary + 1)
 df$nolobstaff <- df$numstaff - df$futurelob
 
 df$femaleratio <- df$numfemale / df$numstaff
 
-summary(df$les)
-sum(df$les == 0)
-hist(df$les)
 
-df$lnles <- log(df$les + eps)
-df$lntotbill <- log(df$totbill + eps)
-df$lnssbill <- log(df$ss_bills + eps)
+df$lnles <- log(df$les + 1)
+df$lntotbill <- log(df$totbill + 1)
+df$lnssbill <- log(df$ss_bills + 1)
 
 ```
 
@@ -87,20 +82,24 @@ ff <-
          staff_char1,
          " + ",
          member_char2,
-         " + as.factor(congress) + as.factor(icpsr)")
+         " + congress + icpsr")
 
+df$congress <- as.factor(df$congress)
+df$icpsr <- as.factor(df$icpsr)
 # Run Model 4
 
 m4 <- lm(ff, data = df)
 
 vcovCL <-
-  clx(m4, 1, m4$model$'as.factor(icpsr)') # Clustered Variance-Covariance Matrix
+  clx(m4, 1, m4$model$'icpsr') # Clustered Variance-Covariance Matrix
 
+```
 
-
+```{r}
 # Residualize Treatment for interpretation according to
 
 est <- m4$model
+
 colnames(est)[16:17] <- c("congress", "icpsr")
 
 ## make an object that is the variable name of the treatment
@@ -112,7 +111,7 @@ x <- "futurelob"
 b <- m4$coefficients[x]
 x.resid <-
   lm(
-    futurelob ~ ln_meansalary + nolobstaff  + cstaff_lob + femaleratio + majority + dwnom1 + budget + chair + subchr + seniority + maj_leader + min_leader + power + factor(congress) + factor(icpsr),
+    futurelob ~ ln_meansalary + nolobstaff  + cstaff_lob + femaleratio + majority + dwnom1 + budget + chair + subchr + seniority + maj_leader + min_leader + power +congress + icpsr,
     data = est
   )$residuals
 
@@ -121,7 +120,7 @@ reg2 <- lm(est$lnles ~ x.resid)
 
 y.resid <-
   lm(
-    lnles ~ ln_meansalary + nolobstaff  + cstaff_lob + femaleratio + majority + dwnom1 + budget + chair + subchr + seniority + maj_leader + min_leader + power + factor(congress) + factor(icpsr),
+    lnles ~ ln_meansalary + nolobstaff  + cstaff_lob + femaleratio + majority + dwnom1 + budget + chair + subchr + seniority + maj_leader + min_leader + power + congress + icpsr,
     data = est
   )$residuals
 
@@ -136,11 +135,11 @@ range(est[, x])
 # SD of residualized Treatment
 (sdxresid <- sd(x.resid))
 round(sdxresid, 2)
+```
 
+```{r}
 
-# Simulation
-
-colnames(m4$model)[16:17] <- c("congress", "icpsr")
+# Set scenario for simulation
 
 # Extract Model Frame
 mf <- model.frame(ff, m4$model)
@@ -157,27 +156,223 @@ scenario_sd["futurelob"] <- scenario_sd["futurelob"] + sdxresid
 
 # Combine the two scenarios in one matrix
 scenario <- rbind(scenario, scenario_sd)
-dim(scenario)
-colnames(scenario)
-results <- simloglm(m4, X = scenario, offset = eps, predicted_values = T)
 
-par(mfrow = c(3, 1))
-hist(apply(results$predicted_values[[2]], 1, median)- apply(results$predicted_values[[1]], 1, median))
-hist(as.numeric(results$geometric_mean[,2] - results$geometric_mean[,1]))
-hist(results$arithmetic_mean[,2] - results$arithmetic_mean[,1])
+results_aca <- simloglm(m4, X = scenario,  observed_value_approach = F, fast = T)
 
-hist(results$geometric_mean[,2]/results$geometric_mean[,1])
+results_ova <- simloglm(m4, scenario = list(futurelob = c(mean(m4$model$futurelob),mean(m4$model$futurelob)+sdxresid)),  observed_value_approach = T, fast = T)
+```
 
-cbind(as.numeric(results$geometric_mean[,2]), apply(results$predicted_values[[2]], 1, median))
 
-par(mfrow = c(3, 1))
-hist(as.numeric(results$geometric_mean[,2]))
-hist( apply(results$predicted_values[[2]], 1, median))
-hist(as.numeric(results$arithmetic_mean[,2]), breaks = 50000000, xlim = c(0, 1.5))
 
-mean(df$les)
+```{r Plot, fig.width=5* (1 + sqrt(5)) / 2, fig.height=5, fig.path="shepherd_you_figures/", dev = "pdf", warning=FALSE}
+# Summarize results
 
-log(as.complex(0))
+# First Difference as difference between expected values on the original scale
+fd_aca_dist <-
+  results_aca$geometric_mean[, 2] - results_aca$geometric_mean[, 1]
+fd_aca <-
+  exp(mean(log(results_aca$geometric_mean[, 2]))) - exp(mean(log(results_aca$geometric_mean[, 1])))
+
+
+# Ratio instead of fd
+# The minus 1 offset matters here (doesn't for the fd above)
+percent_increase_aca_dist <-
+  ((results_aca$geometric_mean[, 2] - 1) / (results_aca$geometric_mean[, 1] - 1)) -
+  1
+percent_increase_aca <-
+  ((exp(mean(
+    log(results_aca$geometric_mean[, 2])
+  )) - 1) / (exp(mean(
+    log(results_aca$geometric_mean[, 1])
+  )) - 1)) - 1
+
+old_par <- par()
+par(old_par)
+
+par(
+  lend = 1,
+  las = 1,
+  mfrow = c(2, 1)
+)
+
+plot(
+  1,
+  1,
+  ylim = c(0, 2),
+  pch = "|",
+  col = adjustcolor(viridis::viridis(2)[1], 0.2),
+  type = "n",
+  bty = "n",
+  ylab = "",
+  yaxt = "n",
+  xaxt = "n",
+  xlab = "",
+  xlim = pretty(c(min(fd_aca_dist), max(fd_aca_dist)))[c(1, length(pretty(c(
+    min(fd_aca_dist), max(fd_aca_dist)
+  ))))]
+)
+title("",
+      xlab = "Difference in Legislative Effectiveness Scores (LES)",
+      ylab = "",
+      col.lab = "grey")
+
+axis(
+  1,
+  at = c(min(fd_aca_dist), max(fd_aca_dist)),
+  labels = round(c(min(fd_aca_dist), max(fd_aca_dist)), 2),
+  lwd = 0,
+  lwd.ticks = 1,
+  col = "grey",
+  col.axis = "grey"
+)
+axis(
+  1,
+  at = pretty(c(min(fd_aca_dist), max(fd_aca_dist)))[c(2:(length(pretty(c(
+    min(fd_aca_dist), max(fd_aca_dist)
+  ))) - 1))],
+  lwd = 0.5,
+  lwd.ticks = 1,
+  col = "grey",
+  col.axis = "grey"
+)
+axis(
+  2,
+  at = 1,
+  labels = "(A)",
+  lwd = 1,
+  lwd.ticks = 0,
+  col = "grey",
+  col.axis = "grey"
+)
+segments(
+  x0 = quantile(fd_aca_dist, 0.1),
+  y0 = 1,
+  x1 = quantile(fd_aca_dist, 0.9),
+  col = adjustcolor(viridis::viridis(2)[1], 1),
+  lwd = 8,
+  lend = 1
+)
+segments(
+  x0 = quantile(fd_aca_dist, 0.025),
+  y0 = 1,
+  x1 = quantile(fd_aca_dist, 0.975),
+  col = adjustcolor(viridis::viridis(2)[1], 1),
+  lwd = 4,
+  lend = 1
+)
+segments(
+  x0 = quantile(fd_aca_dist, 0.005),
+  y0 = 1,
+  x1 = quantile(fd_aca_dist, 0.995),
+  col = adjustcolor(viridis::viridis(2)[1], 1),
+  lwd = 2,
+  lend = 1
+)
+points(mean(fd_aca_dist),
+       1,
+       pch = 1,
+       col = viridis::viridis(2)[2])
+points(fd_aca, 1, pch = 124, col = viridis::viridis(2)[2])
+legend(
+  "top",
+  legend = c("GM", "mean", "80% CI", "95% CI", "99% CI"),
+  pch = c(124, 1, NA, NA, NA),
+  lty = c(NA, NA, "solid", "solid", "solid"),
+  lwd = c(NA, NA, 8, 4, 2),
+  col = c(
+    viridis::viridis(2)[2],
+    viridis::viridis(2)[2],
+    viridis::viridis(2)[1],
+    viridis::viridis(2)[1],
+    viridis::viridis(2)[1]
+  ),
+  bty = "n",
+  ncol = 5,
+  text.col = "grey"
+)
+
+fd <- percent_increase_aca_dist
+plot(
+  1,
+  1,
+  ylim = c(0, 2),
+  pch = "|",
+  col = adjustcolor(viridis::viridis(2)[1], 0.2),
+  type = "n",
+  bty = "n",
+  ylab = "",
+  yaxt = "n",
+  xaxt = "n",
+  xlab = "",
+  xlim = pretty(c(min(fd), max(fd)))[c(1, length(pretty(c(min(
+    fd
+  ), max(
+    fd
+  )))))]
+)
+title("",
+      xlab = "% Change Legislative Effectiveness Scores (LES)",
+      ylab = "",
+      col.lab = "grey")
+
+axis(
+  1,
+  at = c(min(fd), max(fd)),
+  labels = round(c(min(fd), max(fd)), 2) * 100,
+  lwd = 0,
+  lwd.ticks = 1,
+  col = "grey",
+  col.axis = "grey"
+)
+axis(
+  1,
+  at = pretty(c(min(fd), max(fd)))[c(2:(length(pretty(c(
+    min(fd), max(fd)
+  ))) - 1))],
+  labels = pretty(c(min(fd), max(fd)))[c(2:(length(pretty(c(
+    min(fd), max(fd)
+  ))) - 1))] * 100,
+  lwd = 0.5,
+  lwd.ticks = 1,
+  col = "grey",
+  col.axis = "grey"
+)
+axis(
+  2,
+  at = 1,
+  labels = "(B)",
+  lwd = 1,
+  lwd.ticks = 0,
+  col = "grey",
+  col.axis = "grey"
+)
+segments(
+  x0 = quantile(fd, 0.1),
+  y0 = 1,
+  x1 = quantile(fd, 0.9),
+  col = adjustcolor(viridis::viridis(2)[1], 1),
+  lwd = 8,
+  lend = 1
+)
+segments(
+  x0 = quantile(fd, 0.025),
+  y0 = 1,
+  x1 = quantile(fd, 0.975),
+  col = adjustcolor(viridis::viridis(2)[1], 1),
+  lwd = 4,
+  lend = 1
+)
+segments(
+  x0 = quantile(fd, 0.005),
+  y0 = 1,
+  x1 = quantile(fd, 0.995),
+  col = adjustcolor(viridis::viridis(2)[1], 1),
+  lwd = 2,
+  lend = 1
+)
+points(mean(fd), 1, pch = 1, col = viridis::viridis(2)[2])
+points(percent_increase_aca, 1, pch = 124, col = viridis::viridis(2)[2])
+
 
 ```
 

@@ -1,0 +1,101 @@
+---
+title: "Replication of Hollibaugh/Rothenberg 2018"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{hollibaugh_rothenberg_replication}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(simloglm)
+```
+
+
+```{r}
+df <- hollibaugh_rothenberg_2018
+
+# Data frame with the full complement of control variables.
+ols.frame <- na.omit(subset(df, 
+                            select = c(logdist, signedagency, sameside, dim1, 
+                                       dim2, dim1_alt, dim2_alt,
+                                       dim1_nofixed, dim2_nofixed,
+                                       pres_fil_dist,
+                                       term_timediffyear, toptier, 
+                                       midtier, first.hundred,
+                                       first.term, pres.approval,
+                                       pres, nom_fil_dist)))
+
+
+m4 <- lm(logdist ~ signedagency*sameside + dim1 + dim2 + 
+     term_timediffyear + toptier + midtier + 
+     pres_fil_dist + first.hundred + 
+     first.term + pres.approval , 
+     data = ols.frame)
+
+
+summary(m4)
+
+n_range <- 51
+
+sd_range <- seq(-2, 2, length.out = n_range)
+
+range_ind <- seq(mean(df$dim1, na.rm = TRUE) - 2*sd(df$dim1, na.rm = TRUE), 
+                     mean(df$dim1, na.rm = TRUE) + 2*sd(df$dim1, na.rm = TRUE), 
+                     length.out = n_range)
+
+range_div <- seq(mean(df$pres_fil_dist, na.rm = TRUE) - 2*sd(df$pres_fil_dist, na.rm = TRUE), 
+                    mean(df$pres_fil_dist, na.rm = TRUE) + 2*sd(df$pres_fil_dist, na.rm = TRUE), 
+                    length.out = n_range)
+
+results1 <- simloglm(m4, nsim_est = 1000, nsim_fund = 1000, scenario = list(signedagency = mean(m4$model$signedagency),
+                             sameside = mean(m4$model$sameside),
+                             dim1 = range_ind,
+                             dim2 = mean(m4$model$dim2),
+                             term_timediffyear = mean(m4$model$term_timediffyear),
+                             toptier = 0,
+                             midtier = 0,
+                             pres_fil_dist = mean(m4$model$pres_fil_dist),
+                             first.hundred = 0,
+                             first.term = 0,
+                             pres.approval = mean(m4$model$pres.approval)),
+                     fast = T)
+
+
+
+results <- simloglm(m4, nsim_est = 1000, nsim_fund = 1000, scenario =list(dim1 = range_ind), fast = T, observed_value_approach = T)
+
+lm_obj <- m4
+
+scenario = list(dim1 = 0)
+
+p_vals <- pchisq(mahalanobis(m4$model, c(signedagency = mean(m4$model$signedagency),
+                             sameside = mean(m4$model$sameside),
+                             dim1 = mean(m4$model$dim1),
+                             dim2 = mean(m4$model$dim2),
+                             term_timediffyear = mean(m4$model$term_timediffyear),
+                             toptier = 0,
+                             midtier = 0,
+                             pres_fil_dist = mean(m4$model$pres_fil_dist),
+                             first.hundred = 0,
+                             first.term = 0,
+                             pres.approval = mean(m4$model$pres.approval)), cov(m4$model)), df=10, lower.tail=FALSE)
+
+m4$model[which.max(p_vals),]
+
+plot_df <- apply(results$arithmetic_mean, 2, quantile, c(0.025, 0.5, 0.975))
+
+
+ecdf_nom_pres_diff <- ecdf(unique(df$nom_pres_diff))
+
+plot(sd_range, ecdf_nom_pres_diff(apply(results1$arithmetic_mean, 2, function(x) exp(mean(log(x))))), type = "l")
+lines(sd_range, ecdf_nom_pres_diff(apply(results$arithmetic_mean, 2, function(x) exp(mean(log(x))))), col = "red")
+```
+

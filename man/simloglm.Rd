@@ -10,8 +10,10 @@ simloglm(
   nsim_fund = 1000,
   scenario = NULL,
   X = NULL,
+  observed_value_approach = FALSE,
   logged_dv = TRUE,
-  predicted_values = FALSE
+  predicted_values = FALSE,
+  fast = FALSE
 )
 }
 \arguments{
@@ -27,9 +29,13 @@ The list can be provided for more flexibility. Most users will call simulate dir
 
 \item{X}{Sometimes it is easier to directly pass the scenario as a model matrix (e.g. when you want to set the average of factors), this overrides any scenario specified under scenario. (Default is NULL)}
 
+\item{observed_value_approach}{Do you want to use the observed value approach? (Default is FALSE.)}
+
 \item{logged_dv}{Is the dependent variable in the linear model logged? (Default is TRUE.)}
 
 \item{predicted_values}{Do you also want to output predicted values? (Default is FALSE. The resulting object can be very big.)}
+
+\item{fast}{Do you want to speed up computation by not explicitly calculating predicted values? (Default is FALSE.)}
 }
 \value{
 A list of class "simloglm" with two matrices (geometric_mean and arithmetic_mean) with each nsim_est rows and number of scenarios columns and a matrix of predicted values if desired.
