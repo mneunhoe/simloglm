@@ -13,7 +13,8 @@ Authors@R:
            email = "orittman@mail.uni-mannheim.de",
            comment = c(ORCID = "YOUR-ORCID-ID"))
 Description: Functions to simulate the correct quantities of interest from linear
-    regression models with logged dependent variables. This paper accompanies the paper "Title here".
+    regression models with logged dependent variables. This paper accompanies the paper "How to Improve the Substantive Interpretation of 
+    Regression Results when the Dependent Variable is logged".
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

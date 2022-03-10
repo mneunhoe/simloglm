@@ -45,7 +45,7 @@ clx <- function(fm, dfcw, cluster) {
 ```
 
 
-```{r Preprocessing}
+```{r Data preprocessing}
 df <- simloglm::shepherd_you_2020
 
 df$ln_meansalary <- log(df$meansalary + 1)
@@ -60,7 +60,7 @@ df$lnssbill <- log(df$ss_bills + 1)
 
 ```
 
-```{r Model}
+```{r Model, results='hide'}
 # Define the Model Formulas
 
 member_char1 <-
@@ -157,14 +157,16 @@ scenario_sd["futurelob"] <- scenario_sd["futurelob"] + sdxresid
 # Combine the two scenarios in one matrix
 scenario <- rbind(scenario, scenario_sd)
 
-results_aca <- simloglm(m4, X = scenario,  observed_value_approach = F, fast = T)
+set.seed(20220309)
+results_aca <- simloglm(m4, nsim_est = 20000, X = scenario,  observed_value_approach = F, fast = T)
 
-results_ova <- simloglm(m4, scenario = list(futurelob = c(mean(m4$model$futurelob),mean(m4$model$futurelob)+sdxresid)),  observed_value_approach = T, fast = T)
+set.seed(20220309)
+results_ova <- simloglm(m4, nsim_est = 20000, scenario = list(futurelob = c(mean(m4$model$futurelob),mean(m4$model$futurelob)+sdxresid)),  observed_value_approach = T, fast = T)
 ```
 
+# Results with average case approach
 
-
-```{r Plot, fig.width=5* (1 + sqrt(5)) / 2, fig.height=5, fig.path="shepherd_you_figures/", dev = "pdf", warning=FALSE}
+```{r Average Case Plot, fig.width=5* (1 + sqrt(5)) / 2, fig.height=5, fig.path="shepherd_you_figures/", dev = c("png","pdf"), warning=FALSE}
 # Summarize results
 
 # First Difference as difference between expected values on the original scale
@@ -186,10 +188,11 @@ percent_increase_aca <-
     log(results_aca$geometric_mean[, 1])
   )) - 1)) - 1
 
-old_par <- par()
-par(old_par)
+# old_par <- par()
+# par(old_par)
 
 par(
+  mar = c(4.1, 3.1, 0.1, 0.1),
   lend = 1,
   las = 1,
   mfrow = c(2, 1)
@@ -376,3 +379,261 @@ points(percent_increase_aca, 1, pch = 124, col = viridis::viridis(2)[2])
 
 ```
 
+
+
+
+
+# Results with observed value approach
+
+
+```{r Observed Value Plot, fig.width=5* (1 + sqrt(5)) / 2, fig.height=5, fig.path="shepherd_you_figures/", dev = c("png","pdf"), warning=FALSE}
+# Summarize results
+
+# First Difference as difference between expected values on the original scale
+fd_dist <-
+  results_ova$geometric_mean[, 2] - results_ova$geometric_mean[, 1]
+fd <-
+  exp(mean(log(results_ova$geometric_mean[, 2]))) - exp(mean(log(results_ova$geometric_mean[, 1])))
+
+
+# Ratio instead of fd
+# The minus 1 offset matters here (doesn't for the fd above)
+percent_increase_dist <-
+  ((results_ova$geometric_mean[, 2] - 1) / (results_ova$geometric_mean[, 1] - 1)) -
+  1
+percent_increase <-
+  ((exp(mean(
+    log(results_ova$geometric_mean[, 2])
+  )) - 1) / (exp(mean(
+    log(results_ova$geometric_mean[, 1])
+  )) - 1)) - 1
+
+# old_par <- par()
+# par(old_par)
+
+par(
+  mar = c(4.1, 3.1, 0.1, 0.1),
+  lend = 1,
+  las = 1,
+  mfrow = c(2, 1)
+)
+
+plot(
+  1,
+  1,
+  ylim = c(0, 2),
+  pch = "|",
+  col = adjustcolor(viridis::viridis(2)[1], 0.2),
+  type = "n",
+  bty = "n",
+  ylab = "",
+  yaxt = "n",
+  xaxt = "n",
+  xlab = "",
+  xlim = pretty(c(min(fd_dist), max(fd_dist)))[c(1, length(pretty(c(
+    min(fd_dist), max(fd_dist)
+  ))))]
+)
+title("",
+      xlab = "Difference in Legislative Effectiveness Scores (LES)",
+      ylab = "",
+      col.lab = "grey")
+
+axis(
+  1,
+  at = c(min(fd_dist), max(fd_dist)),
+  labels = round(c(min(fd_dist), max(fd_dist)), 2),
+  lwd = 0,
+  lwd.ticks = 1,
+  col = "grey",
+  col.axis = "grey"
+)
+axis(
+  1,
+  at = pretty(c(min(fd_dist), max(fd_dist)))[c(2:(length(pretty(c(
+    min(fd_dist), max(fd_dist)
+  ))) - 1))],
+  lwd = 0.5,
+  lwd.ticks = 1,
+  col = "grey",
+  col.axis = "grey"
+)
+axis(
+  2,
+  at = 1,
+  labels = "(A)",
+  lwd = 1,
+  lwd.ticks = 0,
+  col = "grey",
+  col.axis = "grey"
+)
+segments(
+  x0 = quantile(fd_dist, 0.1),
+  y0 = 1,
+  x1 = quantile(fd_dist, 0.9),
+  col = adjustcolor(viridis::viridis(2)[1], 1),
+  lwd = 8,
+  lend = 1
+)
+segments(
+  x0 = quantile(fd_dist, 0.025),
+  y0 = 1,
+  x1 = quantile(fd_dist, 0.975),
+  col = adjustcolor(viridis::viridis(2)[1], 1),
+  lwd = 4,
+  lend = 1
+)
+segments(
+  x0 = quantile(fd_dist, 0.005),
+  y0 = 1,
+  x1 = quantile(fd_dist, 0.995),
+  col = adjustcolor(viridis::viridis(2)[1], 1),
+  lwd = 2,
+  lend = 1
+)
+points(mean(fd_dist),
+       1,
+       pch = 1,
+       col = viridis::viridis(2)[2])
+points(fd, 1, pch = 124, col = viridis::viridis(2)[2])
+legend(
+  "top",
+  legend = c("GM", "mean", "80% CI", "95% CI", "99% CI"),
+  pch = c(124, 1, NA, NA, NA),
+  lty = c(NA, NA, "solid", "solid", "solid"),
+  lwd = c(NA, NA, 8, 4, 2),
+  col = c(
+    viridis::viridis(2)[2],
+    viridis::viridis(2)[2],
+    viridis::viridis(2)[1],
+    viridis::viridis(2)[1],
+    viridis::viridis(2)[1]
+  ),
+  bty = "n",
+  ncol = 5,
+  text.col = "grey"
+)
+
+fd <- percent_increase_dist
+plot(
+  1,
+  1,
+  ylim = c(0, 2),
+  pch = "|",
+  col = adjustcolor(viridis::viridis(2)[1], 0.2),
+  type = "n",
+  bty = "n",
+  ylab = "",
+  yaxt = "n",
+  xaxt = "n",
+  xlab = "",
+  xlim = pretty(c(min(fd), max(fd)))[c(1, length(pretty(c(min(
+    fd
+  ), max(
+    fd
+  )))))]
+)
+title("",
+      xlab = "% Change Legislative Effectiveness Scores (LES)",
+      ylab = "",
+      col.lab = "grey")
+
+axis(
+  1,
+  at = c(min(fd), max(fd)),
+  labels = round(c(min(fd), max(fd)), 2) * 100,
+  lwd = 0,
+  lwd.ticks = 1,
+  col = "grey",
+  col.axis = "grey"
+)
+axis(
+  1,
+  at = pretty(c(min(fd), max(fd)))[c(2:(length(pretty(c(
+    min(fd), max(fd)
+  ))) - 1))],
+  labels = pretty(c(min(fd), max(fd)))[c(2:(length(pretty(c(
+    min(fd), max(fd)
+  ))) - 1))] * 100,
+  lwd = 0.5,
+  lwd.ticks = 1,
+  col = "grey",
+  col.axis = "grey"
+)
+axis(
+  2,
+  at = 1,
+  labels = "(B)",
+  lwd = 1,
+  lwd.ticks = 0,
+  col = "grey",
+  col.axis = "grey"
+)
+segments(
+  x0 = quantile(fd, 0.1),
+  y0 = 1,
+  x1 = quantile(fd, 0.9),
+  col = adjustcolor(viridis::viridis(2)[1], 1),
+  lwd = 8,
+  lend = 1
+)
+segments(
+  x0 = quantile(fd, 0.025),
+  y0 = 1,
+  x1 = quantile(fd, 0.975),
+  col = adjustcolor(viridis::viridis(2)[1], 1),
+  lwd = 4,
+  lend = 1
+)
+segments(
+  x0 = quantile(fd, 0.005),
+  y0 = 1,
+  x1 = quantile(fd, 0.995),
+  col = adjustcolor(viridis::viridis(2)[1], 1),
+  lwd = 2,
+  lend = 1
+)
+points(mean(fd), 1, pch = 1, col = viridis::viridis(2)[2])
+points(percent_increase, 1, pch = 124, col = viridis::viridis(2)[2])
+
+
+```
+
+
+
+```{r Results in text}
+
+# Average case result
+percent_increase_aca_dist <-
+  ((results_aca$geometric_mean[, 2] - 1) / (results_aca$geometric_mean[, 1] - 1)) -
+  1
+percent_increase_aca <-
+  ((exp(mean(
+    log(results_aca$geometric_mean[, 2])
+  )) - 1) / (exp(mean(
+    log(results_aca$geometric_mean[, 1])
+  )) - 1)) - 1
+
+# The percent increase
+percent_increase_aca
+
+# And the corresponding 95% confidence interval
+
+quantile(percent_increase_aca_dist, c(0.025, 0.975))
+# One sided hypothesis test
+
+mean(percent_increase_aca_dist > 0)
+
+# Results with observed value approach
+percent_increase_dist <-
+  ((results_ova$geometric_mean[, 2] - 1) / (results_ova$geometric_mean[, 1] - 1)) -
+  1
+percent_increase <-
+  ((exp(mean(
+    log(results_ova$geometric_mean[, 2])
+  )) - 1) / (exp(mean(
+    log(results_ova$geometric_mean[, 1])
+  )) - 1)) - 1
+
+quantile(percent_increase_dist, c(0.025, 0.975))
+```

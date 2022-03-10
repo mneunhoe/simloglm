@@ -20,82 +20,485 @@ library(simloglm)
 
 
 ```{r}
-df <- hollibaugh_rothenberg_2018
+df <- simloglm::hollibaugh_rothenberg_2018
 
 # Data frame with the full complement of control variables.
-ols.frame <- na.omit(subset(df, 
-                            select = c(logdist, signedagency, sameside, dim1, 
-                                       dim2, dim1_alt, dim2_alt,
-                                       dim1_nofixed, dim2_nofixed,
-                                       pres_fil_dist,
-                                       term_timediffyear, toptier, 
-                                       midtier, first.hundred,
-                                       first.term, pres.approval,
-                                       pres, nom_fil_dist)))
+ols.frame <- na.omit(subset(
+  df,
+  select = c(
+    logdist,
+    signedagency,
+    sameside,
+    dim1,
+    dim2,
+    dim1_alt,
+    dim2_alt,
+    dim1_nofixed,
+    dim2_nofixed,
+    pres_fil_dist,
+    term_timediffyear,
+    toptier,
+    midtier,
+    first.hundred,
+    first.term,
+    pres.approval,
+    pres,
+    nom_fil_dist
+  )
+))
 
 
-m4 <- lm(logdist ~ signedagency*sameside + dim1 + dim2 + 
-     term_timediffyear + toptier + midtier + 
-     pres_fil_dist + first.hundred + 
-     first.term + pres.approval , 
-     data = ols.frame)
+m4 <- lm(
+  logdist ~ signedagency * sameside + dim1 + dim2 +
+    term_timediffyear + toptier + midtier +
+    pres_fil_dist + first.hundred +
+    first.term + pres.approval ,
+  data = ols.frame
+)
 
 
-summary(m4)
 
-n_range <- 51
+n_range <- 101
 
 sd_range <- seq(-2, 2, length.out = n_range)
 
-range_ind <- seq(mean(df$dim1, na.rm = TRUE) - 2*sd(df$dim1, na.rm = TRUE), 
-                     mean(df$dim1, na.rm = TRUE) + 2*sd(df$dim1, na.rm = TRUE), 
-                     length.out = n_range)
+range_ind <-
+  seq(
+    min(df$dim1, na.rm = TRUE),
+    max(df$dim1, na.rm = TRUE),
+    length.out = n_range
+  )
 
-range_div <- seq(mean(df$pres_fil_dist, na.rm = TRUE) - 2*sd(df$pres_fil_dist, na.rm = TRUE), 
-                    mean(df$pres_fil_dist, na.rm = TRUE) + 2*sd(df$pres_fil_dist, na.rm = TRUE), 
-                    length.out = n_range)
+range_div <-
+  seq(
+    min(df$pres_fil_dist, na.rm = TRUE),
+    max(df$pres_fil_dist, na.rm = TRUE),
+    length.out = n_range
+  )
 
-results1 <- simloglm(m4, nsim_est = 1000, nsim_fund = 1000, scenario = list(signedagency = mean(m4$model$signedagency),
-                             sameside = mean(m4$model$sameside),
-                             dim1 = range_ind,
-                             dim2 = mean(m4$model$dim2),
-                             term_timediffyear = mean(m4$model$term_timediffyear),
-                             toptier = 0,
-                             midtier = 0,
-                             pres_fil_dist = mean(m4$model$pres_fil_dist),
-                             first.hundred = 0,
-                             first.term = 0,
-                             pres.approval = mean(m4$model$pres.approval)),
-                     fast = T)
-
-
-
-results <- simloglm(m4, nsim_est = 1000, nsim_fund = 1000, scenario =list(dim1 = range_ind), fast = T, observed_value_approach = T)
-
-lm_obj <- m4
-
-scenario = list(dim1 = 0)
-
-p_vals <- pchisq(mahalanobis(m4$model, c(signedagency = mean(m4$model$signedagency),
-                             sameside = mean(m4$model$sameside),
-                             dim1 = mean(m4$model$dim1),
-                             dim2 = mean(m4$model$dim2),
-                             term_timediffyear = mean(m4$model$term_timediffyear),
-                             toptier = 0,
-                             midtier = 0,
-                             pres_fil_dist = mean(m4$model$pres_fil_dist),
-                             first.hundred = 0,
-                             first.term = 0,
-                             pres.approval = mean(m4$model$pres.approval)), cov(m4$model)), df=10, lower.tail=FALSE)
-
-m4$model[which.max(p_vals),]
-
-plot_df <- apply(results$arithmetic_mean, 2, quantile, c(0.025, 0.5, 0.975))
+results_ind_aca <-
+  simloglm(
+    m4,
+    scenario = list(
+      signedagency = mean(m4$model$signedagency),
+      sameside = mean(m4$model$sameside),
+      dim1 = range_ind,
+      dim2 = mean(m4$model$dim2),
+      term_timediffyear = mean(m4$model$term_timediffyear),
+      toptier = 0,
+      midtier = 0,
+      pres_fil_dist = mean(m4$model$pres_fil_dist),
+      first.hundred = 0,
+      first.term = 0,
+      pres.approval = mean(m4$model$pres.approval)
+    ),
+    fast = T
+  )
 
 
-ecdf_nom_pres_diff <- ecdf(unique(df$nom_pres_diff))
 
-plot(sd_range, ecdf_nom_pres_diff(apply(results1$arithmetic_mean, 2, function(x) exp(mean(log(x))))), type = "l")
-lines(sd_range, ecdf_nom_pres_diff(apply(results$arithmetic_mean, 2, function(x) exp(mean(log(x))))), col = "red")
+results_ind_ova <-
+  simloglm(
+    m4,
+    scenario = list(dim1 = range_ind),
+    fast = T,
+    observed_value_approach = T
+  )
+
+
+results_div_aca <-
+  simloglm(
+    m4,
+    scenario = list(
+      signedagency = mean(m4$model$signedagency),
+      sameside = mean(m4$model$sameside),
+      dim1 = mean(m4$model$dim1),
+      dim2 = mean(m4$model$dim2),
+      term_timediffyear = mean(m4$model$term_timediffyear),
+      toptier = 0,
+      midtier = 0,
+      pres_fil_dist = range_div,
+      first.hundred = 0,
+      first.term = 0,
+      pres.approval = mean(m4$model$pres.approval)
+    ),
+    fast = T
+  )
+
+
+
+results_div_ova <-
+  simloglm(
+    m4,
+    scenario = list(pres_fil_dist = range_div),
+    fast = T,
+    observed_value_approach = T
+  )
+
+
 ```
 
+```{r Plot aca original scale, fig.width=12, fig.height = 7, fig.path="hollibaugh_rothenberg_figures/", dev = c("png","pdf"), warning=FALSE}
+
+cols <- viridis::viridis(2)
+
+m <- cbind(1, 2)
+layout(m,
+       widths = c(1, 1))
+
+# Plot 1: Agency Decision-Maker Independence
+par(mar = c(5,     # bottom (5)
+            9.7,   # left   (4)
+            2,     # top    (4)
+            0.5),    # right  (2)),
+            xpd = T)
+    
+    
+    hist(
+      df$dim1,
+      breaks = 20,
+      xaxt = "n",
+      yaxt = "n",
+      main = "",
+      ylab = "",
+      xlab = "",
+      xlim = c(-1, 2.5),
+      ylim = c(0, 10000),
+      border = adjustcolor("grey50", alpha = 0),
+      col = adjustcolor("grey50", alpha = 0.5)
+    )
+    par(new = TRUE)  # new plot
+    plot(
+      range_ind,
+      apply(results_ind_aca$geometric_mean, 2, function(x)
+        exp(mean(log(
+          x
+        )))),
+      type = "n",
+      ylim = c(0.1, 0.8),
+      main = "",
+      xlab = "",
+      ylab = "",
+      yaxt = "n",
+      xaxt = "n",
+      xlim = c(-1, 2.5),
+      bty = "n"
+    )
+    box(lty = "solid", col = "grey50")
+    
+    
+    axis(
+      2,
+      at = seq(0.1, 0.80, 0.1),
+      las = 2,
+      col.axis = "grey50",
+      col = "grey50"
+    )
+    axis(1,
+         at = seq(-1, 2.5, 0.5),
+         col.axis = "grey50",
+         col = "grey50")
+    mtext(2,
+          text = "Nominee-President Ideological Divergence",
+          line = 4.1)
+    mtext(3,
+          text = expression(bold("Agency Decision-Maker Independence")),
+          line = 0.4)
+    mtext(1,
+          text = "Value of Independent Variable",
+          at = 2.3,
+          line = 3.5)
+    
+    # Arithmetic Mean
+    quantiles_am <- apply(results_ind_aca$arithmetic_mean, 2, quantile, c(0.025, 0.975))
+    
+    polygon(
+      c(rev(range_ind), range_ind),
+      c(rev(quantiles_am[1, ]), quantiles_am[2, ]),
+      col = adjustcolor(cols[2], 0.6),
+      border = NA
+    )
+    lines(range_ind, apply(results_ind_aca$arithmetic_mean, 2, function(x) exp(mean(log(x)))))
+    
+    # Geometric Mean
+    quantiles_gm <- apply(results_ind_aca$geometric_mean, 2, quantile, c(0.025, 0.975))
+    
+    polygon(
+      c(rev(range_ind), range_ind),
+      c(rev(quantiles_gm[1, ]), quantiles_gm[2, ]),
+      col = adjustcolor(cols[1], 0.6),
+      border = NA
+    )
+    lines(range_ind, apply(results_ind_aca$geometric_mean, 2, function(x) exp(mean(log(x)))))
+    
+    
+    
+    # Plot 2: President-Filibuster Divergence
+    par(mar = c(5,       # bottom (5)
+                0.5,     # left   (4)
+                2,       # top    (4)
+                9.7),    # right  (2)
+        xpd = T)
+    
+    hist(
+      df$pres_fil_dist,
+      breaks = 20,
+      xaxt = "n",
+      yaxt = "n",
+      main = "",
+      ylab = "",
+      xlab = "",
+      ylim = c(0, 5000),
+      xlim = c(1.05, 1.6),
+      border = adjustcolor("grey50", alpha = 0),
+      col = adjustcolor("grey50", alpha = 0.5)
+    )
+    
+    par(new = TRUE)  # new plot
+    
+    plot(
+      range_div,
+      apply(results_div_aca$geometric_mean, 2, function(x)
+        exp(mean(log(
+          x
+        )))),
+      type = "n",
+      ylim = c(0.1, 0.80),
+      main = "",
+      xlab = "",
+      ylab = "",
+      yaxt = "n",
+      xaxt = "n",
+      xlim = c(1.05, 1.6),
+      bty = "n"
+    )
+    box(lty = "solid", col = 'grey50')
+    
+    axis(1,
+         at = seq(1.1, 1.6, 0.1),
+         col.axis = "grey50",
+         col = "grey50")
+    mtext(3,
+          text = expression(bold("President-Filibuster Divergence")),
+          line = 0.4)
+    mtext(
+      4,
+      text = c(expression(italic(
+        "Conditional \narithmetic mean of y: \nE(y)"
+      )),
+      expression(
+        italic("Conditional \ngeometric mean of y: \nexp(E(log(y))")
+      )),
+      at = c(0.57, 0.18),
+      las = 2,
+      line = 0.3
+    )
+    # Arithmetic Mean
+    quantiles_am <- apply(results_div_aca$arithmetic_mean, 2, quantile, c(0.025, 0.975))
+    
+    polygon(
+      c(rev(range_div), range_div),
+      c(rev(quantiles_am[1, ]), quantiles_am[2, ]),
+      col = adjustcolor(cols[2], 0.6),
+      border = NA
+    )
+    lines(range_div, apply(results_div_aca$arithmetic_mean, 2, function(x) exp(mean(log(x)))))
+    
+    # Geometric Mean
+    quantiles_gm <- apply(results_div_aca$geometric_mean, 2, quantile, c(0.025, 0.975))
+    
+    polygon(
+      c(rev(range_div), range_div),
+      c(rev(quantiles_gm[1, ]), quantiles_gm[2, ]),
+      col = adjustcolor(cols[1], 0.6),
+      border = NA
+    )
+    lines(range_div, apply(results_div_aca$geometric_mean, 2, function(x) exp(mean(log(x)))))
+
+    
+
+
+
+```
+```{r Plot ova original scale, fig.width=12, fig.height = 7, fig.path="hollibaugh_rothenberg_figures/", dev = c("png","pdf"), warning=FALSE}
+
+cols <- viridis::viridis(2)
+
+m <- cbind(1, 2)
+layout(m,
+       widths = c(1, 1))
+
+# Plot 1: Agency Decision-Maker Independence
+par(mar = c(5,     # bottom (5)
+            9.7,   # left   (4)
+            2,     # top    (4)
+            0.5),    # right  (2)),
+            xpd = T)
+    
+    
+    hist(
+      df$dim1,
+      breaks = 20,
+      xaxt = "n",
+      yaxt = "n",
+      main = "",
+      ylab = "",
+      xlab = "",
+      xlim = c(-1, 2.5),
+      ylim = c(0, 10000),
+      border = adjustcolor("grey50", alpha = 0),
+      col = adjustcolor("grey50", alpha = 0.5)
+    )
+    par(new = TRUE)  # new plot
+    plot(
+      range_ind,
+      apply(results_ind_ova$geometric_mean, 2, function(x)
+        exp(mean(log(
+          x
+        )))),
+      type = "n",
+      ylim = c(0.1, 0.8),
+      main = "",
+      xlab = "",
+      ylab = "",
+      yaxt = "n",
+      xaxt = "n",
+      xlim = c(-1, 2.5),
+      bty = "n"
+    )
+    box(lty = "solid", col = "grey50")
+    
+    
+    axis(
+      2,
+      at = seq(0.1, 0.80, 0.1),
+      las = 2,
+      col.axis = "grey50",
+      col = "grey50"
+    )
+    axis(1,
+         at = seq(-1, 2.5, 0.5),
+         col.axis = "grey50",
+         col = "grey50")
+    mtext(2,
+          text = "Nominee-President Ideological Divergence",
+          line = 4.1)
+    mtext(3,
+          text = expression(bold("Agency Decision-Maker Independence")),
+          line = 0.4)
+    mtext(1,
+          text = "Value of Independent Variable",
+          at = 2.3,
+          line = 3.5)
+    
+    # Arithmetic Mean
+    quantiles_am <- apply(results_ind_ova$arithmetic_mean, 2, quantile, c(0.025, 0.975))
+    
+    polygon(
+      c(rev(range_ind), range_ind),
+      c(rev(quantiles_am[1, ]), quantiles_am[2, ]),
+      col = adjustcolor(cols[2], 0.6),
+      border = NA
+    )
+    lines(range_ind, apply(results_ind_ova$arithmetic_mean, 2, function(x) exp(mean(log(x)))))
+    
+    # Geometric Mean
+    quantiles_gm <- apply(results_ind_ova$geometric_mean, 2, quantile, c(0.025, 0.975))
+    
+    polygon(
+      c(rev(range_ind), range_ind),
+      c(rev(quantiles_gm[1, ]), quantiles_gm[2, ]),
+      col = adjustcolor(cols[1], 0.6),
+      border = NA
+    )
+    lines(range_ind, apply(results_ind_ova$geometric_mean, 2, function(x) exp(mean(log(x)))))
+    
+    
+    
+    # Plot 2: President-Filibuster Divergence
+    par(mar = c(5,       # bottom (5)
+                0.5,     # left   (4)
+                2,       # top    (4)
+                9.7),    # right  (2)
+        xpd = T)
+    
+    hist(
+      df$pres_fil_dist,
+      breaks = 20,
+      xaxt = "n",
+      yaxt = "n",
+      main = "",
+      ylab = "",
+      xlab = "",
+      ylim = c(0, 5000),
+      xlim = c(1.05, 1.6),
+      border = adjustcolor("grey50", alpha = 0),
+      col = adjustcolor("grey50", alpha = 0.5)
+    )
+    
+    par(new = TRUE)  # new plot
+    
+    plot(
+      range_div,
+      apply(results_div_ova$geometric_mean, 2, function(x)
+        exp(mean(log(
+          x
+        )))),
+      type = "n",
+      ylim = c(0.1, 0.80),
+      main = "",
+      xlab = "",
+      ylab = "",
+      yaxt = "n",
+      xaxt = "n",
+      xlim = c(1.05, 1.6),
+      bty = "n"
+    )
+    box(lty = "solid", col = 'grey50')
+    
+    axis(1,
+         at = seq(1.1, 1.6, 0.1),
+         col.axis = "grey50",
+         col = "grey50")
+    mtext(3,
+          text = expression(bold("President-Filibuster Divergence")),
+          line = 0.4)
+    mtext(
+      4,
+      text = c(expression(italic(
+        "Conditional \narithmetic mean of y: \nE(y)"
+      )),
+      expression(
+        italic("Conditional \ngeometric mean of y: \nexp(E(log(y))")
+      )),
+      at = c(0.57, 0.18),
+      las = 2,
+      line = 0.3
+    )
+    # Arithmetic Mean
+    quantiles_am <- apply(results_div_ova$arithmetic_mean, 2, quantile, c(0.025, 0.975))
+    
+    polygon(
+      c(rev(range_div), range_div),
+      c(rev(quantiles_am[1, ]), quantiles_am[2, ]),
+      col = adjustcolor(cols[2], 0.6),
+      border = NA
+    )
+    lines(range_div, apply(results_div_ova$arithmetic_mean, 2, function(x) exp(mean(log(x)))))
+    
+    # Geometric Mean
+    quantiles_gm <- apply(results_div_ova$geometric_mean, 2, quantile, c(0.025, 0.975))
+    
+    polygon(
+      c(rev(range_div), range_div),
+      c(rev(quantiles_gm[1, ]), quantiles_gm[2, ]),
+      col = adjustcolor(cols[1], 0.6),
+      border = NA
+    )
+    lines(range_div, apply(results_div_ova$geometric_mean, 2, function(x) exp(mean(log(x)))))
+
+    
+
+
+
+```
