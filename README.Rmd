@@ -24,7 +24,7 @@ logged".
 
 ## Installation
 
-Currently you can install the development version of simloglm from  from [GitHub](https://github.com/) with:
+Currently you can install the development version of simloglm from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")

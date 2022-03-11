@@ -14,7 +14,7 @@ Variable is logged”.
 
 ## Installation
 
-Currently you can install the development version of simloglm from from
+Currently you can install the development version of simloglm from
 [GitHub](https://github.com/) with:
 
 ``` r
