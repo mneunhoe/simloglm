@@ -78,7 +78,8 @@ xpd = T)
       ylab = "",
       yaxt = "n",
       xaxt = "n",
-      bty = "n"
+      bty = "n",
+      ylim = c(-1, 16)
     )
     box(lty = "solid", col = "grey50")
     
@@ -116,7 +117,7 @@ xpd = T)
     polygon(
       c(rev(x1_seq), x1_seq),
       c(rev(quantiles_log_1[1, ]), quantiles_log_1[2, ]),
-      col = adjustcolor(cols[2], 0.6),
+      col = adjustcolor(col_vec[2], 0.6),
       border = NA
     )
     
@@ -127,7 +128,7 @@ xpd = T)
     polygon(
       c(rev(x1_seq), x1_seq),
       c(rev(quantiles_log_0[1, ]), quantiles_log_0[2, ]),
-      col = adjustcolor(cols[1], 0.6),
+      col = adjustcolor(col_vec[1], 0.6),
       border = NA
     )
     
@@ -189,7 +190,7 @@ xpd = T)
     polygon(
       c(rev(x1_seq), x1_seq),
       c(rev(quantiles_1[1, ]), quantiles_1[2, ]),
-      col = adjustcolor(cols[2], 0.6),
+      col = adjustcolor(col_vec[2], 0.6),
       border = NA
     )
     
@@ -200,7 +201,7 @@ xpd = T)
     polygon(
       c(rev(x1_seq), x1_seq),
       c(rev(quantiles_0[1, ]), quantiles_0[2, ]),
-      col = adjustcolor(cols[1], 0.6),
+      col = adjustcolor(col_vec[1], 0.6),
       border = NA
     )
     
@@ -265,7 +266,7 @@ fd <- apply(log(scenario_0$geometric_mean),2, mean) - apply(log(scenario_1$geome
     polygon(
       c(rev(x1_seq), x1_seq),
       c(rev(fd_quantiles[1, ]), fd_quantiles[2, ]),
-      col = adjustcolor(cols[1], 0.6),
+      col = adjustcolor(col_vec[1], 0.6),
       border = NA
     )
     
@@ -329,7 +330,7 @@ fd <- apply((scenario_0$arithmetic_mean),2, function(x) exp(mean(log(x)))) - app
     polygon(
       c(rev(x1_seq), x1_seq),
       c(rev(fd_quantiles[1, ]), fd_quantiles[2, ]),
-      col = adjustcolor(cols[1], 0.6),
+      col = adjustcolor(col_vec[1], 0.6),
       border = NA
     )
     

@@ -253,8 +253,8 @@ simloglm <- function(input_obj,
     }
 
     result_object <- list(
-      geometric_mean = res[, , 1],
-      arithmetic_mean = res[, , 2],
+      geometric_mean = res[, , 1, drop = FALSE],
+      arithmetic_mean = res[, , 2, drop = FALSE],
       predicted_values = pv
     )
   }

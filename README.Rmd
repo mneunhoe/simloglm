@@ -39,9 +39,9 @@ library(simloglm)
 df <- cars
 regression <- lm(log(dist)~speed, data = df)
 # Specifiying no scenario to simulate at the mean of speed.
-simloglm(regression)
+simulation_results_average <- simloglm(regression)
 # Explicitily specifying a scenario.
-simloglm(regression, scenario = list(speed = c(5, 10, 20)))
+simulation_results_scenario <- simloglm(regression, scenario = list(speed = c(5, 10, 20)))
 ```
 
 See the vignettes for replications of published work.

@@ -100,8 +100,6 @@ vcovCL <-
 
 est <- m4$model
 
-colnames(est)[16:17] <- c("congress", "icpsr")
-
 ## make an object that is the variable name of the treatment
 
 x <- "futurelob"
