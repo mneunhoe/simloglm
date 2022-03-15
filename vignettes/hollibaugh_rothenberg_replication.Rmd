@@ -284,10 +284,10 @@ par(mar = c(5,     # bottom (5)
     mtext(
       4,
       text = c(expression(italic(
-        "Conditional \narithmetic mean of y: \nE(y)"
+        "Conditional \nmean of y: \nE(y)"
       )),
       expression(
-        italic("Conditional \ngeometric mean of y: \nexp(E(log(y))")
+        italic("Conditional \nmedian of y: \nexp(E(log(y))")
       )),
       at = c(0.57, 0.18),
       las = 2,
@@ -466,10 +466,10 @@ par(mar = c(5,     # bottom (5)
     mtext(
       4,
       text = c(expression(italic(
-        "Conditional \narithmetic mean of y: \nE(y)"
+        "Conditional \nmean of y: \nE(y)"
       )),
       expression(
-        italic("Conditional \ngeometric mean of y: \nexp(E(log(y))")
+        italic("Conditional \nmedian of y: \nexp(E(log(y))")
       )),
       at = c(0.57, 0.18),
       las = 2,
