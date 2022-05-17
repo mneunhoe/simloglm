@@ -23,8 +23,8 @@ get_summary <-
           exp(mean(log(x))))
 
       quantiles <-
-        apply(input_obj[[paste0(which_mean)]], 2, quantile, c(alpha / 2, 1 - alpha /
-                                                                2))
+        apply(input_obj[[paste0(which_mean)]], 2, stats::quantile, c(alpha / 2, 1 - alpha /
+                                                                       2))
 
 
       result_object <- list(gm = gm,

@@ -33,12 +33,12 @@ clx <- function(fm, dfcw, cluster) {
   dfc <-
     (M / (M - 1)) * ((N - 1) / (N - fm$rank)) # Adjust degrees of freedom
   
-  u <- apply(estfun(fm), 2, function(x)
+  u <- apply(sandwich::estfun(fm), 2, function(x)
     tapply(x, cluster, sum))
   
-  vcovCL <- dfc * sandwich (fm, meat = crossprod(u) / N) * dfcw
+  vcovCL <- dfc * sandwich::sandwich (fm, meat = crossprod(u) / N) * dfcw
   
-  print(coeftest(fm, vcovCL)) # Print Results to console
+  print(lmtest::coeftest(fm, vcovCL)) # Print Results to console
   
   return(vcovCL) # Return Variance-Covariance Matrix
 }
@@ -136,7 +136,6 @@ round(sdxresid, 2)
 ```
 
 ```{r}
-
 # Set scenario for simulation
 
 # Extract Model Frame
@@ -156,10 +155,26 @@ scenario_sd["futurelob"] <- scenario_sd["futurelob"] + sdxresid
 scenario <- rbind(scenario, scenario_sd)
 
 set.seed(20220309)
-results_aca <- simloglm(m4, nsim_est = 20000, X = scenario,  observed_value_approach = F, fast = T)
+results_aca <-
+  simloglm(
+    m4,
+    nsim_est = 20000,
+    X = scenario,
+    observed_value_approach = FALSE,
+    fast = TRUE
+  )
 
 set.seed(20220309)
-results_ova <- simloglm(m4, nsim_est = 20000, scenario = list(futurelob = c(mean(m4$model$futurelob),mean(m4$model$futurelob)+sdxresid)),  observed_value_approach = T, fast = T)
+results_ova <-
+  simloglm(
+    m4,
+    nsim_est = 20000,
+    scenario = list(futurelob = c(
+      mean(m4$model$futurelob), mean(m4$model$futurelob) + sdxresid
+    )),
+    observed_value_approach = TRUE,
+    fast = TRUE
+  )
 ```
 
 # Results with average case approach
@@ -169,21 +184,21 @@ results_ova <- simloglm(m4, nsim_est = 20000, scenario = list(futurelob = c(mean
 
 # First Difference as difference between expected values on the original scale
 fd_aca_dist <-
-  results_aca$geometric_mean[, 2] - results_aca$geometric_mean[, 1]
+  results_aca$geometric_mean[, 2, 1] - results_aca$geometric_mean[, 1, 1]
 fd_aca <-
-  exp(mean(log(results_aca$geometric_mean[, 2]))) - exp(mean(log(results_aca$geometric_mean[, 1])))
+  exp(mean(log(results_aca$geometric_mean[, 2, 1]))) - exp(mean(log(results_aca$geometric_mean[, 1, 1])))
 
 
 # Ratio instead of fd
 # The minus 1 offset matters here (doesn't for the fd above)
 percent_increase_aca_dist <-
-  ((results_aca$geometric_mean[, 2] - 1) / (results_aca$geometric_mean[, 1] - 1)) -
+  ((results_aca$geometric_mean[, 2, 1] - 1) / (results_aca$geometric_mean[, 1, 1] - 1)) -
   1
 percent_increase_aca <-
   ((exp(mean(
-    log(results_aca$geometric_mean[, 2])
+    log(results_aca$geometric_mean[, 2, 1])
   )) - 1) / (exp(mean(
-    log(results_aca$geometric_mean[, 1])
+    log(results_aca$geometric_mean[, 1, 1])
   )) - 1)) - 1
 
 # old_par <- par()
@@ -603,13 +618,13 @@ points(percent_increase, 1, pch = 124, col = viridis::viridis(2)[2])
 
 # Average case result
 percent_increase_aca_dist <-
-  ((results_aca$geometric_mean[, 2] - 1) / (results_aca$geometric_mean[, 1] - 1)) -
+  ((results_aca$geometric_mean[, 2, 1] - 1) / (results_aca$geometric_mean[, 1, 1] - 1)) -
   1
 percent_increase_aca <-
   ((exp(mean(
-    log(results_aca$geometric_mean[, 2])
+    log(results_aca$geometric_mean[, 2, 1])
   )) - 1) / (exp(mean(
-    log(results_aca$geometric_mean[, 1])
+    log(results_aca$geometric_mean[, 1, 1])
   )) - 1)) - 1
 
 # The percent increase

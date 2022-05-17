@@ -28,7 +28,7 @@ get_first_difference <-
         fd_dist <-
           matrix(apply(input_obj[[paste0(which_mean)]], 1, diff))
         quantiles <-
-          apply(fd_dist, 2, quantile, c(alpha / 2, 1 - alpha /
+          apply(fd_dist, 2, stats::quantile, c(alpha / 2, 1 - alpha /
                                           2))
 
 
