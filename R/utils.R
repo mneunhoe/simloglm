@@ -1,3 +1,10 @@
+rinvgamma <- function (n, shape, rate = 1, scale = 1/rate)
+{
+  if (missing(rate) && !missing(scale))
+    rate <- 1/scale
+  1/stats::rgamma(n, shape, rate)
+}
+
 lm_to_obj <- function(lm_obj){
   # extract model parameters
   beta_hat <- stats::coef(lm_obj)
@@ -21,8 +28,9 @@ sim_param <- function(nsim,
                       n,
                       k){
   beta_sim <- MASS::mvrnorm(nsim, beta_hat, varcov_hat)
-  #sigma2_sim <- sigma_hat^2 * (n-k) / rchisq(nsim_est, n-k)
-  sigma2_sim <- stats::rgamma(nsim, shape = (n-k)/2, rate = (n-k)/(2*sigma_hat^2))
+
+  sigma2_sim <- rinvgamma(nsim, shape=(n - k)/2, scale = 2/(sigma_hat^2*(n - k)))
+
   return(list(betas = beta_sim, sigma = sigma2_sim))
 }
 
