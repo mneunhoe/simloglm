@@ -8,7 +8,7 @@
 
 The goal of simloglm is to provide functions to simulate the correct
 quantities of interest from linear regression models with logged
-dependent variables. This paper accompanies the paper “How to Improve
+dependent variables. This package accompanies the paper “How to Improve
 the Substantive Interpretation of Regression Results when the Dependent
 Variable is logged”.
 

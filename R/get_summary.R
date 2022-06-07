@@ -15,19 +15,18 @@
 
 get_summary <-
   function(input_obj,
-           which_mean = "geometric_mean",
+           which_qoi = "median",
            alpha = 0.05) {
     if (class(input_obj) == "simloglm") {
-      gm <-
-        apply(input_obj[[paste0(which_mean)]], 2, function(x)
-          exp(mean(log(x))))
+      point_estimate <-
+        input_obj[[paste0(which_qoi,"_point_estimate")]]
 
       quantiles <-
-        apply(input_obj[[paste0(which_mean)]], 2, stats::quantile, c(alpha / 2, 1 - alpha /
+        apply(input_obj[[paste0(which_qoi)]], 2, stats::quantile, c(alpha / 2, 1 - alpha /
                                                                        2))
 
 
-      result_object <- list(gm = gm,
+      result_object <- list(point_estimate = point_estimate,
                             quantiles = quantiles)
 
 

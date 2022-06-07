@@ -1,7 +1,7 @@
 #' Simulate from a linear regression model with a logged dependent variable
 #'
 #' @param input_obj Either a list of class "lm" (the output from a call to lm) or a user provided list with the following entries beta_hat (the estimated regression coefficients),
-#' varcov_hat (the estimated variance covariance matrix), sigma_hat (the estimated residual standard error), n (the number of observations) and k (the number of regression coefficients).
+#' unscaled_vcov (the unscaled variance covariance matrix), sigma_hat (the estimated residual standard error), n (the number of observations) and k (the number of regression coefficients).
 #' The list can be provided for more flexibility. Most users will call simulate directly on the output from a call to lm.
 #' @param nsim_est Number of simulations to simulate estimation uncertainty (defaults to 1000).
 #' @param nsim_fund Number of simulations to simulate fundamental uncertainty (defaults to 1000).
@@ -30,7 +30,7 @@ simloglm <- function(input_obj,
                      observed_value_approach = FALSE,
                      logged_dv = TRUE,
                      predicted_values = FALSE,
-                     fast = FALSE) {
+                     fast = TRUE) {
   # Handle lm objects
   if (class(input_obj) == "lm") {
     # Automatically detect logged dependent variables
@@ -52,7 +52,7 @@ simloglm <- function(input_obj,
     nsim = nsim_est,
     beta_hat = obj$beta_hat,
     sigma_hat = obj$sigma_hat,
-    varcov_hat = obj$varcov_hat,
+    unscaled_vcov = obj$unscaled_vcov,
     n = obj$n,
     k = obj$k
   )
@@ -79,8 +79,8 @@ simloglm <- function(input_obj,
       message("Predicted values cannot be calculated when using the fast option.")
     }
 
-    geometric_mean <- NULL
-    arithmetic_mean <- NULL
+    sim_median <- NULL
+    sim_mean <- NULL
     if (is.null(scenario)) {
       m_df <- input_obj$model
 
@@ -97,16 +97,6 @@ simloglm <- function(input_obj,
       X <-
         stats::model.matrix(Terms, m, contrasts.arg = input_obj$contrasts)
 
-      Xbeta_sim <- parameters_sim$betas %*% t(X)
-
-      geometric_mean <-
-        cbind(geometric_mean, rowMeans(exp(Xbeta_sim)))
-
-
-      arithmetic_mean <-
-        cbind(arithmetic_mean, rowMeans(exp(
-          sweep(Xbeta_sim, 1, sigma2_sim / 2, "+")
-        )))
 
     } else {
       cli::cli_progress_bar("Running the simulation", total = length(scenario[[paste0(names(scenario))]]))
@@ -127,23 +117,28 @@ simloglm <- function(input_obj,
         X <-
           stats::model.matrix(Terms, m, contrasts.arg = input_obj$contrasts)
 
-        Xbeta_sim <- parameters_sim$betas %*% t(X)
-
-        geometric_mean <-
-          cbind(geometric_mean, rowMeans(exp(Xbeta_sim)))
-        arithmetic_mean <-
-          cbind(arithmetic_mean, rowMeans(exp(
-            sweep(Xbeta_sim, 1, sigma2_sim / 2, "+")
-          )))
         cli::cli_progress_update()
 
       }
 
     }
 
+    Xbeta_sim <- beta_sim %*% t(X)
+
+    sim_median <-
+      cbind(geometric_mean, rowMeans(exp(Xbeta_sim)))
+
+
+    sim_mean <-
+      cbind(arithmetic_mean, rowMeans(exp(
+        sweep(Xbeta_sim, 1, sigma2_sim / 2, "+")
+      )))
+
     result_object <- list(
-      geometric_mean = geometric_mean,
-      arithmetic_mean = arithmetic_mean,
+      median_point_estimate = exp(obj$beta_hat %*% t(X)),
+      median = sim_median,
+      mean_point_estimate = exp(obj$beta_hat %*% t(X) + 1/2*obj$sigma_hat^2),
+      mean = sim_mean,
       predicted_values = list()
     )
 
@@ -194,7 +189,7 @@ simloglm <- function(input_obj,
 
 
     # Calculate Expected Values of log(Y)
-    Xbeta_sim <- parameters_sim$betas %*% t(X)
+    Xbeta_sim <- beta_sim %*% t(X)
 
     res <- array(NA, c(nsim_est, nrow(X), 2))
 
@@ -223,7 +218,7 @@ simloglm <- function(input_obj,
           y_sim <- sim_logy(
             nsim = nsim_fund,
             E_log_Y = Xbeta_sim[i, s],
-            sigma = sqrt(parameters_sim$sigma[i]),
+            sigma = sqrt(sigma2_sim[i]),
             exponentiate = TRUE
           )
 
@@ -253,8 +248,10 @@ simloglm <- function(input_obj,
     }
 
     result_object <- list(
-      geometric_mean = res[, , 1, drop = FALSE],
-      arithmetic_mean = res[, , 2, drop = FALSE],
+      median_point_estimate = exp(obj$beta_hat%*% t(X)),
+      median = res[, , 1, drop = FALSE],
+      mean_point_estimate = exp(obj$beta_hat%*% t(X) + 1/2*obj$sigma_hat^2),
+      mean = res[, , 2, drop = FALSE],
       predicted_values = pv
     )
   }

@@ -1,45 +1,63 @@
-rinvgamma <- function (n, shape, rate = 1, scale = 1/rate)
+rinvgamma <- function (n,
+                       shape,
+                       rate = 1,
+                       scale = 1 / rate)
 {
   if (missing(rate) && !missing(scale))
-    rate <- 1/scale
-  1/stats::rgamma(n, shape, rate)
+    rate <- 1 / scale
+  1 / stats::rgamma(n, shape, rate)
 }
 
-lm_to_obj <- function(lm_obj){
+lm_to_obj <- function(lm_obj) {
   # extract model parameters
   beta_hat <- stats::coef(lm_obj)
-  varcov_hat <- stats::vcov(lm_obj)
-  sigma_hat <- summary(lm_obj)$sigma
+  #varcov_hat <- stats::vcov(lm_obj)
+  summary_obj <- summary(lm_obj)
+  sigma_hat <- summary_obj$sigma
+  unscaled_vcov <- summary_obj$cov.unscaled
   n <- length(stats::residuals(lm_obj))
   k <- length(beta_hat)
 
-  return(list(beta_hat = beta_hat,
-              varcov_hat = varcov_hat,
-              sigma_hat = sigma_hat,
-              n = n,
-              k = k))
+  return(list(
+    beta_hat = beta_hat,
+    unscaled_vcov = unscaled_vcov,
+    sigma_hat = sigma_hat,
+    n = n,
+    k = k
+  ))
 }
 
 
 sim_param <- function(nsim,
                       beta_hat,
-                      varcov_hat,
+                      unscaled_vcov,
                       sigma_hat,
                       n,
-                      k){
-  beta_sim <- MASS::mvrnorm(nsim, beta_hat, varcov_hat)
+                      k) {
 
-  sigma2_sim <- rinvgamma(nsim, shape=(n - k)/2, scale = 2/(sigma_hat^2*(n - k)))
+
+  sigma2_sim <-
+    rinvgamma(nsim,
+              shape = (n - k) / 2,
+              scale = 2 / (sigma_hat ^ 2 * (n - k)))
+
+
+  beta_sim <- t(sapply(sigma2_sim, function(x)  MASS::mvrnorm(1, beta_hat, unscaled_vcov*x)))
+
 
   return(list(betas = beta_sim, sigma = sigma2_sim))
 }
 
-sim_logy <- function(nsim, E_log_Y, sigma, exponentiate = TRUE){
+sim_logy <- function(nsim, E_log_Y, sigma, exponentiate = TRUE) {
   logY_sim <- stats::rnorm(nsim,
-                    E_log_Y,
-                    sigma)
-  if (exponentiate == TRUE){return(exp(logY_sim))}
-  if (exponentiate == FALSE){return(logY_sim)}
+                           E_log_Y,
+                           sigma)
+  if (exponentiate == TRUE) {
+    return(exp(logY_sim))
+  }
+  if (exponentiate == FALSE) {
+    return(logY_sim)
+  }
 }
 
 
