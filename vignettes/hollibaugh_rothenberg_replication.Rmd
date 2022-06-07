@@ -133,6 +133,9 @@ summary_mean <- get_summary(results_ind_aca, which_qoi = "mean")
 summary_median <- get_summary(results_ind_aca, which_qoi = "median")
 
 
+fd_extreme <- get_first_difference(results_ind_aca_extreme, which_qoi = "median", which_scenarios = c(1, 101))
+fd <- get_first_difference(results_ind_aca, which_qoi = "median", which_scenarios = c(1, 101))
+
 # Plot 1: Agency Decision-Maker Independence
 par(mar = c(5,     # bottom (5)
             9.7,   # left   (4)
