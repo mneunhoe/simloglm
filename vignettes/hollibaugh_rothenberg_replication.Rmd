@@ -136,6 +136,9 @@ summary_median <- get_summary(results_ind_aca, which_qoi = "median")
 fd_extreme <- get_first_difference(results_ind_aca_extreme, which_qoi = "median", which_scenarios = c(1, 101))
 fd <- get_first_difference(results_ind_aca, which_qoi = "median", which_scenarios = c(1, 101))
 
+
+par(mfrow = c(1,2))
+
 # Plot 1: Agency Decision-Maker Independence
 par(mar = c(5,     # bottom (5)
             9.7,   # left   (4)
@@ -194,6 +197,17 @@ mtext(3,
 mtext(1,
       text = "Value of Independent Variable",
       line = 3.1)
+text(x = 2.4,
+     y = 0.25,
+     labels = "Conditional\nMedian",
+     srt = 90,
+     cex = 0.8)
+text(x = 2.4,
+     y = 0.7,
+     labels = "Conditional\nMean",
+     srt = 90,
+     cex = 0.8)
+
 
 # Mean
 polygon(
@@ -224,11 +238,11 @@ par(mar = c(5,       # bottom (5)
 
 
 
-plot(fd$fd, 1, ylim = c(0.5, 2.5), xlim = c(-0.5,1.2), yaxt = "n",xaxt = "n", xlab = "", bty = "n", ylab = "", type = "n")
+plot(fd$fd, 1, ylim = c(0.5, 2.5), xlim = c(-0.25, 0.8), yaxt = "n", xaxt = "n", xlab = "", bty = "n", ylab = "", type = "n")
 box(lty = "solid", col = "grey50")
 
 axis(1,
-     at = seq(-0.5, 1, 0.5),
+     at = seq(0, 0.5, 0.5),
      col.axis = "grey50",
      col = "grey50")
 mtext(1,
@@ -237,21 +251,14 @@ mtext(1,
 mtext(3,
       text = expression(bold("First Differences")),
       line = 0.4)
-segments(x0 = seq(-0.5, 1, 0.25), y0 = 0.43, y1 = 2.57,  lty = "dashed", col = "grey90")
-segments(x0 = fd$quantiles[1], x1 = fd$quantiles[2], y0 = 1, lwd = 4, lend = 1, col = viridis::viridis(2)[1])
-points(fd$fd, 1, pch = 124, col = "white")
-segments(x0 = fd_extreme$quantiles[1], x1 = fd_extreme$quantiles[2], y0 = 2, lwd = 4, lend = 1, col = viridis::viridis(2)[1])
-points(fd_extreme$fd, 2, pch = 124, col = "white")
+segments(x0 = seq(-0.5, 0.75, 0.25), y0 = 0.43, y1 = 2.57,  lty = "dashed", col = "grey90")
+segments(x0 = 0, y0 = 0.43, y1 = 2.57,  lty = "dashed", col = "black")
+segments(x0 = fd$quantiles[1], x1 = fd$quantiles[2], y0 = 1, lwd = 6, lend = 1, col = viridis::viridis(2)[1])
+points(x = fd$fd, y = 1, cex = 2, pch = 124, col = "white")
+segments(x0 = fd_extreme$quantiles[1], x1 = fd_extreme$quantiles[2], y0 = 2, lwd = 6, lend = 1, col = viridis::viridis(2)[1])
+points(fd_extreme$fd, 2, cex = 2, pch = 124, col = "white")
 text(x = fd$quantiles[2], y = 1, labels = "Average Case Scenario", pos = 4)
-text(x = fd_extreme$quantiles[1], y = 2, labels = "Alternative Scenario", pos = 2)
-
-
-    
-    
-    
-   
-
-
+text(x = fd_extreme$quantiles[2], y = 2, labels = "Alternative Scenario", pos = 4)
 
 ```
 
