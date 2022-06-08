@@ -1,0 +1,91 @@
+---
+title: "monte_carlo_coverage"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{monte_carlo_coverage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(simloglm)
+```
+
+
+```{r}
+# set seed
+set.seed(43782)
+
+# set parameters
+n <- 10
+n_mc_sims <- 10000  # monte carlo simulations to obtain the sampling distribution
+
+X_c <- 20
+b_cons <- 2.5
+b_educ <- 0.1
+sigma <- 1.0  # should update this so it's robust to mixing up var and sd
+educ <- seq(from = 10, to = 20, length.out = n)
+
+
+# do simulation
+sim_list <- list()
+#pb <- txtProgressBar(min = 0, max = n_sims, style = 3)
+for (i in 1:n_mc_sims) {
+  if (i %% 10 == 0) print(i)
+  # find maximum likelihood estimate of quantity of interest
+  e <- rnorm(n, mean = 0, sd = sigma)
+  inc <- exp(b_cons + b_educ*educ + e)
+  m <- lm(log(inc) ~ educ)
+
+  sim_list[[i]] <- simloglm(m, scenario = list(educ = c(1,20)))
+
+}
+
+coverage_fct <- function(x, true_value){
+  mean(x[1,] < true_value & x[2,] > true_value)
+
+}
+
+mean_summary <- lapply(sim_list, function(x) get_summary(x, which_qoi = "mean"))
+
+# Coverage scenario educ = 1, mean
+coverage_fct(sapply(mean_summary, function(x) x$quantiles[,1] ), true_value = exp(b_cons+b_educ*1+1/2))
+
+# Coverage scenario educ = 20, mean
+coverage_fct(sapply(mean_summary, function(x) x$quantiles[,2] ), true_value = exp(b_cons+b_educ*20+1/2))
+
+
+
+median_summary <- lapply(sim_list, function(x) get_summary(x, which_qoi = "median"))
+
+# Coverage scenario educ = 1, median
+coverage_fct(sapply(median_summary, function(x) x$quantiles[,1] ), true_value = exp(b_cons+b_educ*1))
+
+# Coverage scenario educ = 20, mean
+coverage_fct(sapply(median_summary, function(x) x$quantiles[,2] ), true_value = exp(b_cons+b_educ*20))
+
+
+mean_fd_summary <- lapply(sim_list, function(x) get_first_difference(x, which_qoi = "mean"))
+
+coverage_fct(sapply(mean_fd_summary, function(x) x$quantiles ), true_value = exp(b_cons+b_educ*20 + 1/2) - exp(b_cons+b_educ*1 + 1/2))
+
+median_fd_summary <- lapply(sim_list, function(x) get_first_difference(x, which_qoi = "median"))
+
+coverage_fct(sapply(median_fd_summary, function(x) x$quantiles ), true_value = exp(b_cons+b_educ*20 ) - exp(b_cons+b_educ*1 ))
+
+mean_ratio_summary <- lapply(sim_list, function(x) get_ratio(x, which_qoi = "mean"))
+
+coverage_fct(sapply(mean_ratio_summary, function(x) x$quantiles ), true_value = exp(b_cons+b_educ*20 + 1/2 ) / exp(b_cons+b_educ*1 + 1/2 ))
+
+median_ratio_summary <- lapply(sim_list, function(x) get_ratio(x, which_qoi = "median"))
+
+coverage_fct(sapply(median_ratio_summary, function(x) x$quantiles ), true_value = exp(b_cons+b_educ*20 ) / exp(b_cons+b_educ*1 ))
+```
+
