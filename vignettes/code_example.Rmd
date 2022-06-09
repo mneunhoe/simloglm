@@ -1,0 +1,140 @@
+---
+title: "code_example"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{code_example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(simloglm)
+```
+
+# Estimating the model
+
+```{r}
+# Estimating the model
+df <- simloglm:::example_df(n = 10)
+
+m1 <- lm(log(income)~educ, data = df)
+```
+
+# Simulating with simloglm
+
+```{r}
+# Calculating QoI and simulating Confidence Intevals with simloglm
+set.seed(220609)
+res1 <- simloglm(m1, scenario = list(educ = c(1, 20)))
+
+# Summarize results for median
+get_summary(res1, which_qoi = "median")
+
+# Summarize results for mean
+get_summary(res1, which_qoi = "mean")
+
+# Or get first difference between the two scenarios
+get_first_difference(res1, which_qoi = "median")
+
+```
+
+# Simulating by hand
+
+```{r}
+# Calculating QoI and simulating Confidence Intervals by hand
+
+# Function to sample from inverse gamma distribution
+rinvgamma <- function (n,
+                       shape,
+                       rate = 1,
+                       scale = 1 / rate)
+{
+  if (missing(rate) && !missing(scale))
+    rate <- 1 / scale
+  1 / stats::rgamma(n, shape, rate)
+}
+
+
+# Set up informal posterior of coefficients
+
+# Set number of draws
+nsim <- 1000
+
+beta_hat <- coef(m1)
+sigma_hat <- summary(m1)$sigma
+X_prime_X <- summary(m1)$cov.unscaled
+
+set.seed(220609)
+# First sigma^2
+sigma2_tilde <- rinvgamma(
+  nsim,
+  shape = m1$df.residual / 2,
+  rate = (sigma_hat ^ 2 * m1$df.residual) / 2
+)
+
+
+# Then the betas
+beta_tilde <- matrix(NA, nrow = nsim, ncol = length(beta_hat))
+
+for (sim in 1:nsim) {
+  beta_tilde[sim, ] <-
+    MASS::mvrnorm(1, beta_hat,  X_prime_X * sigma2_tilde[sim])
+}
+
+# Set your scenarios as a matrix (don't forget the intercept)
+X_c <- rbind(c(1, 1),
+             c(1, 20))
+ 
+# Calculate the linear predictor on the log scale
+X_beta <- beta_tilde %*% t(X_c)
+
+# Now transform back to original scale using the appropriate formula
+
+# Expected Values/Conditional Mean
+# First add the draws of 1/2*sigma2_tilde to each column
+X_beta_sigma_tilde <- apply(X_beta, 2, function(x) x + 1/2*sigma2_tilde)
+
+# Transform
+E_Y_c <- exp(X_beta_sigma_tilde)
+
+# Summarize to get Confidence Intervals
+CI_E_Y_c <- apply(E_Y_c, 2, quantile, c(0.025, 0.975))
+
+# Use beta_hat and sigma_hat for point estimates
+X_beta_hat <- beta_hat %*% t(X_c)
+X_beta_sigma_hat <- X_beta_hat + 1/2*sigma_hat^2
+
+# Point estimate
+E_Y_c_hat <- exp(X_beta_sigma_hat)
+
+# Conditional Median
+# First add the draws of 1/2*sigma2_tilde to each column
+
+# Transform
+Med_Y_c <- exp(X_beta)
+
+# Summarize to get Confidence Intervals
+CI_Med_Y_c <- apply(Med_Y_c, 2, quantile, c(0.025, 0.975))
+
+# Point estimate
+Med_Y_c_hat <- exp(X_beta_hat)
+
+
+# Or get first difference of the medians between the two scenarios
+
+# Point estimate
+fd_Med_hat <- Med_Y_c_hat[,2] - Med_Y_c_hat[,1]
+
+# Confidence Intevals
+fd_Med <- Med_Y_c[,2] - Med_Y_c[,1]
+
+CI_fd_Med <- quantile(fd_Med, c(0.025, 0.975))
+```
+

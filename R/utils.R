@@ -63,6 +63,14 @@ sim_logy <- function(nsim, E_log_Y, sigma, exponentiate = TRUE) {
   }
 }
 
+example_df <- function(n = 10, b_cons = 2.5, b_educ = 0.1, sigma = 1) {
+  educ <- seq(from = 10, to = 20, length.out = n)
+  e <- rnorm(n, mean = 0, sd = sigma)
+  inc <- exp(b_cons + b_educ*educ + e)
+
+  return(data.frame(income = inc, educ = educ))
+
+}
 
 setup_pop <-
   function(n,
