@@ -2,5 +2,6 @@
 
 S3method(plot,simloglm)
 export(get_first_difference)
+export(get_ratio)
 export(get_summary)
 export(simloglm)

@@ -13,12 +13,12 @@ simloglm(
   observed_value_approach = FALSE,
   logged_dv = TRUE,
   predicted_values = FALSE,
-  fast = FALSE
+  fast = TRUE
 )
 }
 \arguments{
 \item{input_obj}{Either a list of class "lm" (the output from a call to lm) or a user provided list with the following entries beta_hat (the estimated regression coefficients),
-varcov_hat (the estimated variance covariance matrix), sigma_hat (the estimated residual standard error), n (the number of observations) and k (the number of regression coefficients).
+unscaled_vcov (the unscaled variance covariance matrix), sigma_hat (the estimated residual standard error), n (the number of observations) and k (the number of regression coefficients).
 The list can be provided for more flexibility. Most users will call simulate directly on the output from a call to lm.}
 
 \item{nsim_est}{Number of simulations to simulate estimation uncertainty (defaults to 1000).}

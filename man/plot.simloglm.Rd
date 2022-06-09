@@ -4,14 +4,14 @@
 \alias{plot.simloglm}
 \title{Plot function for a simloglm object}
 \usage{
-\method{plot}{simloglm}(input_obj, which_mean = "geometric_mean", alpha = 0.05, twosided = TRUE)
+\method{plot}{simloglm}(input_obj, which_qoi = "median", alpha = 0.05, twosided = TRUE)
 }
 \arguments{
 \item{input_obj}{Either a list of class "lm" (the output from a call to lm) or a user provided list with the following entries beta_hat (the estimated regression coefficients),
 varcov_hat (the estimated variance covariance matrix), sigma_hat (the estimated residual standard error), n (the number of observations) and k (the number of regression coefficients).
 The list can be provided for more flexibility. Most users will call simulate directly on the output from a call to lm.}
 
-\item{which_mean}{Which mean should be plotted? Geometric mean ("geometric_mean") or arithmetic mean ("arithmetic_mean"), defaults to "geometric_mean".}
+\item{which_qoi}{Which mean should be plotted? Median or mean, defaults to "median".}
 
 \item{alpha}{Set the significance level. Default is 0.05.}
 

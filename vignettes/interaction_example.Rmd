@@ -39,9 +39,9 @@ x1_seq <- seq(min(pop_df$x1), max(pop_df$x1), length.out = 100)
 
 # Set seeds to make sure simulations are based on same draws of coefficients
 set.seed(20220310)
-scenario_1 <- simloglm(reg_ia, scenario = list(x1 = x1_seq, x2 = 1), fast = T)
+scenario_1 <- simloglm(reg_ia, scenario = list(x1 = x1_seq, x2 = 1))
 set.seed(20220310)
-scenario_0 <- simloglm(reg_ia, scenario = list(x1 = x1_seq, x2 = 0), fast = T)
+scenario_0 <- simloglm(reg_ia, scenario = list(x1 = x1_seq, x2 = 0))
 ```
 
 
@@ -110,10 +110,11 @@ xpd = T)
     text(9, 3, labels = "D = 1", col = col_vec[2], font = 2)
     text(4, 12, labels = "D = 0", col = col_vec[1], font = 2)
     
-    # Arithmetic Mean
+    # Median on log scale
     
-    quantiles_log_1 <- apply(log(scenario_1$geometric_mean),2, quantile, c(0.025, 0.975))
-    
+    #quantiles_log_1 <- apply(log(scenario_1$geometric_mean),2, quantile, c(0.025, 0.975))
+    scenario_1_log_scale <- lapply(get_summary(scenario_1), log)
+    quantiles_log_1 <- scenario_1_log_scale$quantiles
     polygon(
       c(rev(x1_seq), x1_seq),
       c(rev(quantiles_log_1[1, ]), quantiles_log_1[2, ]),
@@ -121,9 +122,10 @@ xpd = T)
       border = NA
     )
     
-    lines(x1_seq, apply(log(scenario_1$geometric_mean),2, mean))
+    lines(x1_seq, scenario_1_log_scale$point_estimate)
     
-    quantiles_log_0 <- apply(log(scenario_0$geometric_mean),2, quantile, c(0.025, 0.975))
+    scenario_0_log_scale <- lapply(get_summary(scenario_0), log)
+    quantiles_log_0 <- scenario_0_log_scale$quantiles
     
     polygon(
       c(rev(x1_seq), x1_seq),
@@ -132,7 +134,7 @@ xpd = T)
       border = NA
     )
     
-    lines(x1_seq, apply(log(scenario_0$geometric_mean),2, mean))
+    lines(x1_seq, scenario_0_log_scale$point_estimate)
     
     par(mar = c(5,     # bottom (5)
             6.5,   # left   (4)
@@ -183,29 +185,31 @@ xpd = T)
           line = 3.5)
     
     
-    # Arithmetic Mean
+    # Conditional Mean
     
-    quantiles_1 <- apply((scenario_1$arithmetic_mean),2, quantile, c(0.025, 0.975))
+    scenario_1_original_scale <- get_summary(scenario_1, which_qoi = "mean")
+    quantiles_original_1 <- scenario_1_original_scale$quantiles
     
     polygon(
       c(rev(x1_seq), x1_seq),
-      c(rev(quantiles_1[1, ]), quantiles_1[2, ]),
+      c(rev(quantiles_original_1[1, ]), quantiles_original_1[2, ]),
       col = adjustcolor(col_vec[2], 0.6),
       border = NA
     )
     
-    lines(x1_seq, apply((scenario_1$arithmetic_mean),2, function(x) exp(mean(log(x)))))
+    lines(x1_seq, scenario_1_original_scale$point_estimate)
     
-    quantiles_0 <- apply((scenario_0$arithmetic_mean),2, quantile, c(0.025, 0.975))
+    scenario_0_original_scale <- get_summary(scenario_0, which_qoi = "mean")
+    quantiles_original_0 <- scenario_0_original_scale$quantiles
     
     polygon(
       c(rev(x1_seq), x1_seq),
-      c(rev(quantiles_0[1, ]), quantiles_0[2, ]),
+      c(rev(quantiles_original_0[1, ]), quantiles_original_0[2, ]),
       col = adjustcolor(col_vec[1], 0.6),
       border = NA
     )
     
-    lines(x1_seq, apply((scenario_0$arithmetic_mean),2, function(x) exp(mean(log(x)))))
+    lines(x1_seq, scenario_0_original_scale$point_estimate)
     
   
     # Plot 3: FD on log scale
@@ -219,9 +223,9 @@ xpd = T)
 
 #plot(x1_seq, apply((scenario_0$arithmetic_mean),2, function(x) exp(mean(log(x)))) - apply((scenario_1$arithmetic_mean),2, function(x) exp(mean(log(x)))), type = "l")
     
-fd_quantiles <- apply(log(scenario_0$geometric_mean) - log(scenario_1$geometric_mean), 2, quantile, c(0.025, 0.975))
+fd_quantiles <- apply(log(scenario_0$median) - log(scenario_1$median), 2, quantile, c(0.025, 0.975))
   
-fd <- apply(log(scenario_0$geometric_mean),2, mean) - apply(log(scenario_1$geometric_mean),2, mean)
+fd <- log(scenario_0$median_point_estimate) - log(scenario_1$median_point_estimate)
 
     plot(
     c(rev(x1_seq), x1_seq),
@@ -283,10 +287,9 @@ xpd = T)
 
 #plot(x1_seq, apply((scenario_0$arithmetic_mean),2, function(x) exp(mean(log(x)))) - apply((scenario_1$arithmetic_mean),2, function(x) exp(mean(log(x)))), type = "l")
     
-fd_quantiles <- apply((scenario_0$arithmetic_mean) - (scenario_1$arithmetic_mean), 2, quantile, c(0.025, 0.975))
+fd_quantiles <- apply((scenario_0$mean) - (scenario_1$mean), 2, quantile, c(0.025, 0.975))
   
-fd <- apply((scenario_0$arithmetic_mean),2, function(x) exp(mean(log(x)))) - apply((scenario_1$arithmetic_mean),2, function(x) exp(mean(log(x))))
-
+fd <- (scenario_0$mean_point_estimate) - (scenario_1$mean_point_estimate)
     plot(
     c(rev(x1_seq), x1_seq),
       c(rev(fd_quantiles[1, ]), fd_quantiles[2, ]),

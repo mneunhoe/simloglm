@@ -34,16 +34,19 @@ sim_param <- function(nsim,
                       sigma_hat,
                       n,
                       k) {
-
-
   sigma2_sim <-
     rinvgamma(nsim,
               shape = (n - k) / 2,
               scale = 2 / (sigma_hat ^ 2 * (n - k)))
 
+  cli::cli_progress_bar("Simulating the parameters", total = nsim)
 
-  beta_sim <- t(sapply(sigma2_sim, function(x)  MASS::mvrnorm(1, beta_hat, unscaled_vcov*x)))
+  beta_sim <- matrix(NA, nrow = nsim, ncol = k)
 
+  for(sim in 1:nsim){
+    beta_sim[sim,] <- MASS::mvrnorm(1, beta_hat, unscaled_vcov * sigma2_sim[sim])
+    cli::cli_progress_update()
+  }
 
   return(list(betas = beta_sim, sigma = sigma2_sim))
 }

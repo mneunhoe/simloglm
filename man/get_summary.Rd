@@ -4,14 +4,14 @@
 \alias{get_summary}
 \title{Summarize a simloglm object}
 \usage{
-get_summary(input_obj, which_mean = "geometric_mean", alpha = 0.05)
+get_summary(input_obj, which_qoi = "median", alpha = 0.05)
 }
 \arguments{
 \item{input_obj}{An object of class simloglm (the output of calling simloglm).}
 
-\item{which_mean}{Are you interested in the conditional arithmetic mean ("arithmetic_mean") or conditional geometric mean ("geometric_mean"; same as median)? Default is "geometric_mean".}
-
 \item{alpha}{The significance level for the resulting confidence interval. Default is 0.05.}
+
+\item{which_mean}{Are you interested in the conditional arithmetic mean ("arithmetic_mean") or conditional geometric mean ("geometric_mean"; same as median)? Default is "geometric_mean".}
 }
 \description{
 Summarize a simloglm object
