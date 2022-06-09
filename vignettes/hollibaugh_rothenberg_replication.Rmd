@@ -117,8 +117,6 @@ results_ind_aca_extreme <-
       pres.approval = max(m4$model$pres.approval)
     )
   )
-
-get_ratio(results_ind_aca, which_scenarios = c(1, 101))
 ```
 
 ```{r Plot aca original scale, fig.width=12, fig.height = 7, fig.path="hollibaugh_rothenberg_figures/", dev = c("png","pdf"), warning=FALSE}
