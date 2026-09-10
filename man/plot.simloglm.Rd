@@ -4,30 +4,47 @@
 \alias{plot.simloglm}
 \title{Plot function for a simloglm object}
 \usage{
-\method{plot}{simloglm}(input_obj, which_qoi = "median", alpha = 0.05, twosided = TRUE)
+\method{plot}{simloglm}(
+  x,
+  which_qoi = "median",
+  alpha = 0.05,
+  twosided = TRUE,
+  xlab = "Scenario",
+  ylab = NULL,
+  main = NULL,
+  ...
+)
 }
 \arguments{
-\item{input_obj}{Either a list of class "lm" (the output from a call to lm) or a user provided list with the following entries beta_hat (the estimated regression coefficients),
-varcov_hat (the estimated variance covariance matrix), sigma_hat (the estimated residual standard error), n (the number of observations) and k (the number of regression coefficients).
-The list can be provided for more flexibility. Most users will call simulate directly on the output from a call to lm.}
+\item{x}{An object of class simloglm (the output of calling simloglm).}
 
-\item{which_qoi}{Which mean should be plotted? Median or mean, defaults to "median".}
+\item{which_qoi}{Which quantity should be plotted, the conditional geometric
+mean (\code{"median"}) or the conditional arithmetic mean (\code{"mean"})? Defaults to
+\code{"median"}.}
 
 \item{alpha}{Set the significance level. Default is 0.05.}
 
-\item{twosided}{Do you want two sided confidence intervals? Defaults to TRUE.}
+\item{twosided}{If \code{TRUE} (the default) an equal-tailed interval holding
+\code{1 - alpha} of the simulations is drawn. If \code{FALSE} the two one-sided bounds
+of level \code{1 - alpha} are drawn instead, i.e. the \code{alpha} and \code{1 - alpha}
+quantiles.}
+
+\item{xlab, ylab, main}{Passed to the underlying plot; sensible defaults are
+derived from the object.}
+
+\item{...}{Further graphical parameters passed to \code{\link[graphics:plot.default]{graphics::plot()}}.}
 }
 \value{
-A plot of the simloglm object.
+A data frame with the plotted point estimates and interval bounds,
+invisibly.
 }
 \description{
-Plot function for a simloglm object
+Plots the point estimate for every scenario together with its simulation
+interval.
 }
 \examples{
 df <- cars
-regression <- lm(log(dist)~speed, data = df)
-# Specifiying no scenario to simulate at the mean of speed.
-plot(simloglm(regression))
-# Explicitily specifying a scenario.
-plot(simloglm(regression, scenario = list(speed = c(5, 10, 20))))
+regression <- lm(log(dist) ~ speed, data = df)
+plot(simloglm(regression, scenario = list(speed = c(5, 10, 20)),
+              verbose = FALSE))
 }

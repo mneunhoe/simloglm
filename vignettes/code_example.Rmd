@@ -80,13 +80,14 @@ sigma2_tilde <- rinvgamma(
 )
 
 
-# Then the betas
-beta_tilde <- matrix(NA, nrow = nsim, ncol = length(beta_hat))
+# Then the betas. Every draw shares the same correlation structure and differs
+# only in scale, so the (X'X)^-1 matrix is factored once rather than once per
+# draw -- this is what simloglm() does internally.
+R <- chol(X_prime_X)
+Z <- matrix(rnorm(nsim * length(beta_hat)), nrow = nsim)
 
-for (sim in 1:nsim) {
-  beta_tilde[sim, ] <-
-    MASS::mvrnorm(1, beta_hat,  X_prime_X * sigma2_tilde[sim])
-}
+beta_tilde <- Z %*% R * sqrt(sigma2_tilde)
+beta_tilde <- beta_tilde + rep(beta_hat, each = nsim)
 
 # Set your scenarios as a matrix (don't forget the intercept)
 X_c <- rbind(c(1, 1),
@@ -138,3 +139,20 @@ fd_Med <- Med_Y_c[,2] - Med_Y_c[,1]
 CI_fd_Med <- quantile(fd_Med, c(0.025, 0.975))
 ```
 
+
+# The two agree exactly
+
+Because `simloglm()` draws the parameters the same way -- one Cholesky
+factorisation of `(X'X)^-1` scaled by each draw of `sigma^2` -- the hand
+calculation above reproduces its output to the last bit, given the same seed:
+
+```{r}
+all.equal(unname(res1$median), Med_Y_c)
+all.equal(unname(res1$mean), E_Y_c)
+
+all.equal(as.vector(res1$median_point_estimate), as.vector(Med_Y_c_hat))
+all.equal(as.vector(res1$mean_point_estimate), as.vector(E_Y_c_hat))
+
+all.equal(unname(get_first_difference(res1)$fd), unname(fd_Med_hat))
+all.equal(as.vector(get_first_difference(res1)$quantiles), as.vector(CI_fd_Med))
+```

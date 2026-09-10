@@ -1,6 +1,8 @@
-^simloglm\.Rproj$
-^\.Rproj\.user$
 ^LICENSE\.md$
-^README\.Rmd$
-^doc$
 ^Meta$
+^README\.Rmd$
+^README\.html$
+^\.Rproj\.user$
+^\.github$
+^doc$
+^simloglm\.Rproj$

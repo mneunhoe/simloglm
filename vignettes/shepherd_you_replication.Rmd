@@ -42,6 +42,18 @@ clx <- function(fm, dfcw, cluster) {
   
   return(vcovCL) # Return Variance-Covariance Matrix
 }
+
+# The dependent variable here is log(les + 1), so retransforming to the scale of
+# les means subtracting the offset of 1 from every quantity of interest. Shift
+# only the four result matrices and leave the rest of the simloglm object (and
+# its class) alone.
+
+shift_qoi <- function(sim_obj, offset) {
+  for (nm in c("median", "mean", "median_point_estimate", "mean_point_estimate")) {
+    sim_obj[[nm]] <- sim_obj[[nm]] + offset
+  }
+  sim_obj
+}
 ```
 
 
@@ -154,13 +166,24 @@ scenario_sd["futurelob"] <- scenario_sd["futurelob"] + sdxresid
 # Combine the two scenarios in one matrix
 scenario <- rbind(scenario, scenario_sd)
 
+# The scenario is passed as a model matrix rather than as a list because the
+# congress and icpsr fixed effects are set to their observed proportions, which
+# a scenario on the original scale cannot express. Columns of X are used exactly
+# as supplied, so they must already be transformed -- which they are, having
+# come straight out of model.matrix().
+
+# lnles was logged before the model was fitted, so the formula cannot tell
+# simloglm() that this is a log scale; logged_dv = TRUE (the default) says so.
+
 set.seed(20220608)
 results_aca <-
   simloglm(
     m4,
     nsim_est = 10,
     X = scenario,
-    fast = T
+    fast = TRUE,
+    logged_dv = TRUE,
+    verbose = FALSE
   )
 ```
 
@@ -168,12 +191,8 @@ results_aca <-
 
 ```{r Average Case Plot, fig.width=5* (1 + sqrt(5)) / 2, fig.height=5, fig.path="shepherd_you_figures/", dev = c("png","pdf"), warning=FALSE}
 # Summarize results
-# First calculate the offset to fully retransform the values
-results_aca_retransformed <- lapply(results_aca, function(x){ if(!("list" %in% class(x))) {
-x - 1
-}
-})
-class(results_aca_retransformed) <- "simloglm"
+# First undo the offset of the log(les + 1) transformation
+results_aca_retransformed <- shift_qoi(results_aca, -1)
 # First Difference as difference between expected values on the original scale
 fd_mean_aca_max <- get_first_difference(results_aca_retransformed, which_qoi = "mean", alpha = 0)
 fd_mean_aca_99 <- get_first_difference(results_aca_retransformed, which_qoi = "mean", alpha = 0.01)
@@ -463,5 +482,5 @@ points(percent_increase_aca_99$ratio-1, 1, pch = 124, col = viridis::viridis(2)[
 percent_increase_aca_95
 
 # One sided test
-mean(results_aca_retransformed$median[,2,1]/results_aca_retransformed$median[,1,1] -1  > 0)
+mean(results_aca_retransformed$median[, 2] / results_aca_retransformed$median[, 1] -1  > 0)
 ```

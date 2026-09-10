@@ -78,28 +78,34 @@ range_div <-
     length.out = n_range
   )
 
-# First we calculate the QoI with the original scenario of the authors
+# The dependent variable was logged before the model was fitted, so the formula
+# reads `logdist ~ ...` and simloglm() cannot tell from it that the model is on
+# a log scale. logged_dv = TRUE (the default) is what we want here; we pass it
+# explicitly so the intent is on the page.
 
+# First we calculate the QoI with the original scenario of the authors.
+# Only the variables that depart from the average case have to be named:
+# everything else is held at its mean automatically.
+
+set.seed(20220608)
 results_ind_aca <-
   simloglm(
     m4,
     scenario = list(
-      signedagency = mean(m4$model$signedagency),
-      sameside = mean(m4$model$sameside),
       dim1 = range_ind,
-      dim2 = mean(m4$model$dim2),
-      term_timediffyear = mean(m4$model$term_timediffyear),
       toptier = 0,
       midtier = 0,
-      pres_fil_dist = mean(m4$model$pres_fil_dist),
       first.hundred = 0,
-      first.term = 0,
-      pres.approval = mean(m4$model$pres.approval)
-    )
+      first.term = 0
+    ),
+    logged_dv = TRUE,
+    verbose = FALSE
   )
 
-# Second we choose an arbitrary extreme scenario.
+# Second we choose an arbitrary extreme scenario. Here every value is chosen
+# deliberately, so all of them are spelled out.
 
+set.seed(20220609)
 results_ind_aca_extreme <-
   simloglm(
     m4,
@@ -115,7 +121,9 @@ results_ind_aca_extreme <-
       first.hundred = 0,
       first.term = 1,
       pres.approval = max(m4$model$pres.approval)
-    )
+    ),
+    logged_dv = TRUE,
+    verbose = FALSE
   )
 ```
 

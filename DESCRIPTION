@@ -1,35 +1,38 @@
 Package: simloglm
 Title: Simulate Correct Quantities of Interest from Linear Models with Logged Dependent Variables
-Version: 0.0.0.9000
-Authors@R: 
+Version: 0.1.0
+Authors@R: c(
     person(given = "Marcel",
            family = "Neunhoeffer",
            role = c("aut", "cre"),
-           email = "marcel.neunhoeffer@stat.uni-muenchen.de",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+           email = "marcel.neunhoeffer@stat.uni-muenchen.de"),
     person(given = "Oliver",
            family = "Rittmann",
-           role = c("aut", "cre"),
-           email = "orittman@mail.uni-mannheim.de",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: Functions to simulate the correct quantities of interest from linear
-    regression models with logged dependent variables. This paper accompanies the paper "How to Improve the Substantive Interpretation of 
-    Regression Results when the Dependent Variable is logged".
+           role = "aut",
+           email = "orittman@mail.uni-mannheim.de"))
+Description: Functions to simulate the correct quantities of interest from
+    linear regression models with logged dependent variables. Accompanies the
+    paper "How to Improve the Substantive Interpretation of Regression Results
+    when the Dependent Variable is logged".
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
+RoxygenNote: 7.3.3
 Suggests: 
     knitr,
+    lmtest,
     rmarkdown,
-    testthat (>= 3.0.0)
+    sandwich,
+    testthat (>= 3.0.0),
+    viridis,
+    xtable,
+    zoo
 Config/testthat/edition: 3
 Imports: 
     stats,
-    MASS,
-    cli,
-    viridis
+    graphics,
+    cli
 Depends: 
     R (>= 2.10)
 VignetteBuilder: knitr

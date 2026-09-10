@@ -32,19 +32,41 @@ devtools::install_github("mneunhoe/simloglm")
 ```
 ## Usage
 
-This is a basic example which shows you how to solve a common problem:
-
 ```{r example}
 library(simloglm)
 df <- cars
-regression <- lm(log(dist)~speed, data = df)
-# Specifiying no scenario to simulate at the mean of speed.
-simulation_results_average <- simloglm(regression)
-# Explicitily specifying a scenario.
-simulation_results_scenario <- simloglm(regression, scenario = list(speed = c(5, 10, 20)))
+regression <- lm(log(dist) ~ speed, data = df)
+
+# Specifying no scenario simulates at the mean of every variable.
+simulation_results_average <- simloglm(regression, verbose = FALSE)
+
+# Explicitly specifying a scenario.
+simulation_results_scenario <- simloglm(regression,
+                                        scenario = list(speed = c(5, 10, 20)),
+                                        verbose = FALSE)
+
+get_summary(simulation_results_scenario, which_qoi = "median")
+get_summary(simulation_results_scenario, which_qoi = "mean")
 ```
 
-See the vignettes for replications of published work.
+`median` holds the conditional geometric mean (which is also the conditional
+median) of the dependent variable, `mean` the conditional arithmetic mean, each
+as a matrix with one row per simulation draw and one column per scenario.
+
+Scenario values are given on the **original scale** of the variables, so a
+transformation in the formula is applied for you:
+
+```{r loglog}
+loglog <- lm(log(dist) ~ log(speed), data = df)
+res <- simloglm(loglog, scenario = list(speed = c(10, 11)), verbose = FALSE)
+
+# A ten percent increase in speed multiplies the median by 1.1^beta.
+get_ratio(res)$ratio
+```
+
+Variables you leave out of the scenario are held at their mean (numeric) or
+reference level (factor). See `vignette("log_log_models")` for elasticities and
+first differences, and the other vignettes for replications of published work.
 
 ## Issues
 Please reach out in case you find bugs and open an issue on Github. 

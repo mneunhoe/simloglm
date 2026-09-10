@@ -12,22 +12,38 @@ get_first_difference(
 )
 }
 \arguments{
-\item{input_obj}{An object of class simloglm (the output of calling simloglm). With at least two scenarios.}
+\item{input_obj}{An object of class simloglm (the output of calling
+simloglm), with at least two scenarios.}
 
-\item{which_qoi}{Are you interested in the median or mean ? Default is "median".}
+\item{which_qoi}{Are you interested in the conditional geometric mean
+(\code{"median"}) or the conditional arithmetic mean (\code{"mean"})? Default is
+\code{"median"}.}
 
-\item{which_scenarios}{If you pass a simloglm object with more than two scenarios please specify which scenarios should be used. Default is c(1, 2).}
+\item{which_scenarios}{If you pass a simloglm object with more than two
+scenarios please specify which scenarios should be used. Default is
+\code{c(1, 2)}, and the difference is the second scenario minus the first.}
 
-\item{alpha}{The significance level for the resulting confidence interval. Default is 0.05.}
+\item{alpha}{The significance level for the resulting confidence interval.
+Default is 0.05.}
+}
+\value{
+A list of class "first_difference_simloglm" with the first
+difference, the baseline it is measured from, and simulation quantiles.
 }
 \description{
-Get the first difference from a simloglm object
+The first difference between two scenarios, on the scale of the dependent
+variable. In contrast to \code{\link[=get_ratio]{get_ratio()}}, a first difference is
+baseline-dependent: the same proportional change produces a different
+absolute difference depending on where you start, and the sigma^2 / 2
+correction does \strong{not} cancel. The baseline is returned alongside the
+difference and should be reported with it.
 }
 \examples{
 df <- cars
-regression <- lm(log(dist)~speed, data = df)
-# Explicitily specifying two scenarios.
-simulation_results <- simloglm(regression, scenario = list(speed = c(5, 20)))
+regression <- lm(log(dist) ~ speed, data = df)
+# Explicitly specifying two scenarios.
+simulation_results <- simloglm(regression, scenario = list(speed = c(5, 20)),
+                               verbose = FALSE)
 first_difference_summary <- get_first_difference(simulation_results)
 first_difference_summary
 }

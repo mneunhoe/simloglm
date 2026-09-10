@@ -8,7 +8,7 @@
 A data frame with 9382 rows and 70 variables.
 }
 \source{
-\url{https://doi.org/10.7910/DVN/B9SCDJ}
+\doi{10.7910/DVN/B9SCDJ}
 }
 \usage{
 hollibaugh_rothenberg_2018

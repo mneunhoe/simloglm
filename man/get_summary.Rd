@@ -9,18 +9,25 @@ get_summary(input_obj, which_qoi = "median", alpha = 0.05)
 \arguments{
 \item{input_obj}{An object of class simloglm (the output of calling simloglm).}
 
-\item{alpha}{The significance level for the resulting confidence interval. Default is 0.05.}
+\item{which_qoi}{Are you interested in the conditional geometric mean (which
+is also the conditional median, \code{"median"}) or the conditional arithmetic
+mean (\code{"mean"})? Default is \code{"median"}.}
 
-\item{which_mean}{Are you interested in the conditional arithmetic mean ("arithmetic_mean") or conditional geometric mean ("geometric_mean"; same as median)? Default is "geometric_mean".}
+\item{alpha}{The significance level for the resulting confidence interval.
+Default is 0.05.}
+}
+\value{
+A list of class "summary_simloglm" with the point estimate for every
+scenario and the corresponding simulation quantiles.
 }
 \description{
 Summarize a simloglm object
 }
 \examples{
 df <- cars
-regression <- lm(log(dist)~speed, data = df)
-# Specifiying no scenario to simulate at the mean of speed.
-simulation_results <- simloglm(regression)
+regression <- lm(log(dist) ~ speed, data = df)
+# Specifying no scenario simulates at the mean of speed.
+simulation_results <- simloglm(regression, verbose = FALSE)
 simulation_summary <- get_summary(simulation_results)
 simulation_summary
 }

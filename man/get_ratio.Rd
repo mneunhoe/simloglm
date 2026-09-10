@@ -12,22 +12,49 @@ get_ratio(
 )
 }
 \arguments{
-\item{input_obj}{An object of class simloglm (the output of calling simloglm). With at least two scenarios.}
+\item{input_obj}{An object of class simloglm (the output of calling
+simloglm), with at least two scenarios.}
 
-\item{which_qoi}{Are you interested in the median or mean ? Default is "median".}
+\item{which_qoi}{Are you interested in the conditional geometric mean
+(\code{"median"}) or the conditional arithmetic mean (\code{"mean"})? Default is
+\code{"median"}. See the section above: for a ratio the two agree.}
 
-\item{which_scenarios}{If you pass a simloglm object with more than two scenarios please specify which scenarios should be used. Default is c(1, 2).}
+\item{which_scenarios}{If you pass a simloglm object with more than two
+scenarios please specify which scenarios should be used. Default is
+\code{c(1, 2)}, and the ratio is the second scenario over the first.}
 
-\item{alpha}{The significance level for the resulting confidence interval. Default is 0.05.}
+\item{alpha}{The significance level for the resulting confidence interval.
+Default is 0.05.}
+}
+\value{
+A list of class "ratio_simloglm" with the ratio and its simulation
+quantiles.
 }
 \description{
-Get the ratio between two scenarios from a simloglm object
+The ratio of two predicted values is the natural quantity of interest in a
+log-log model, where it is the multiplicative effect implied by the
+elasticity: raising \code{x} by ten percent multiplies the predicted \code{y} by
+\code{1.1^beta}.
 }
+\section{The sigma^2 / 2 correction cancels}{
+
+Unlike a level prediction or a first difference, a ratio does \strong{not} depend
+on the correction that this package exists to apply:
+\deqn{\frac{\exp(X_2\beta + \sigma^2/2)}{\exp(X_1\beta + \sigma^2/2)} =
+  \exp((X_2 - X_1)\beta).}
+In the fast path the cancellation happens draw by draw, because row \emph{i} of
+both scenarios uses the same \code{sigma2_sim[i]}. \code{which_qoi = "median"} and
+\code{which_qoi = "mean"} therefore return numerically identical distributions,
+and that is the correct answer rather than a bug. The correction has bite for
+level predictions and for \code{\link[=get_first_difference]{get_first_difference()}}, not for ratios.
+}
+
 \examples{
 df <- cars
-regression <- lm(log(dist)~speed, data = df)
-# Explicitily specifying two scenarios.
-simulation_results <- simloglm(regression, scenario = list(speed = c(5, 20)))
+regression <- lm(log(dist) ~ log(speed), data = df)
+# A ten percent increase in speed, from the elasticity.
+simulation_results <- simloglm(regression, scenario = list(speed = c(10, 11)),
+                               verbose = FALSE)
 ratio_summary <- get_ratio(simulation_results)
 ratio_summary
 }

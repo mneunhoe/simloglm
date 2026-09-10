@@ -1,0 +1,150 @@
+---
+title: "Log-log models"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Log-log models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(simloglm)
+set.seed(20220609)
+```
+
+A log-log model regresses `log(y)` on `log(x)`, so its slope is an elasticity:
+a one percent increase in `x` is associated with a `beta` percent change in `y`.
+This vignette shows how to read that off a `simloglm` object, and points out one
+thing about the sigma^2 / 2 correction that surprises people.
+
+# Scenarios are given on the original scale
+
+```{r}
+fit <- lm(log(dist) ~ log(speed), data = cars)
+coef(fit)
+```
+
+You supply `speed`, not `log(speed)`. The `log()` in the formula is applied for
+you, exactly as it is by `predict()`:
+
+```{r}
+res <- simloglm(fit, scenario = list(speed = c(10, 11)), verbose = FALSE)
+get_summary(res, which_qoi = "median")
+```
+
+The one place this does not hold is `X`: a model matrix passed directly is used
+as-is, so its columns must already be transformed.
+
+A caveat on the default scenario. With no `scenario`, `simloglm()` holds every
+numeric variable at its arithmetic mean *on the original scale*. In a log-log
+model "x at its mean" is ambiguous, because the mean of `log(x)` corresponds to
+the **geometric** mean of `x`, which is smaller. If you want the geometric mean,
+ask for it:
+
+```{r}
+mean(cars$speed)
+exp(mean(log(cars$speed)))
+
+simloglm(fit, scenario = list(speed = exp(mean(log(cars$speed)))),
+         verbose = FALSE)$median_point_estimate
+```
+
+# Recovering 1.1^beta from a ratio
+
+The ratio of the two scenarios above is the multiplicative effect of a ten
+percent increase in `speed`, and it should be `1.1^beta`:
+
+```{r}
+ratio <- get_ratio(res)
+ratio$ratio
+1.1^coef(fit)[2]
+ratio$quantiles
+```
+
+So a ten percent higher speed goes with roughly a
+`r round(100 * (get_ratio(res)$ratio - 1))` percent higher median stopping
+distance.
+
+# The sigma^2 / 2 correction cancels in a ratio
+
+The point of this package is the correction that turns a prediction on the log
+scale into the conditional *arithmetic* mean on the original scale. For a ratio
+it makes no difference at all:
+
+$$\frac{\exp(X_2\beta + \sigma^2/2)}{\exp(X_1\beta + \sigma^2/2)} = \exp((X_2 - X_1)\beta).$$
+
+In the fast path this cancels draw by draw, because row `i` of both scenarios
+uses the same `sigma2_sim[i]`. The two quantities of interest are therefore
+numerically identical:
+
+```{r}
+all.equal(get_ratio(res, which_qoi = "median")$ratio,
+          get_ratio(res, which_qoi = "mean")$ratio)
+
+all.equal(res$median[, 2] / res$median[, 1],
+          res$mean[, 2] / res$mean[, 1])
+```
+
+
+# Where the correction matters
+
+Level predictions and first differences. A first difference is measured in units
+of `y`, so it depends on the baseline you start from, and the correction shifts
+that baseline:
+
+```{r}
+res3 <- simloglm(fit, scenario = list(speed = c(10, 11, 20)), verbose = FALSE)
+
+fd_median <- get_first_difference(res3, which_qoi = "median")
+fd_mean <- get_first_difference(res3, which_qoi = "mean")
+
+c(median = fd_median$fd, mean = fd_mean$fd)
+```
+
+Always report a first difference together with its baseline, which is why
+`get_first_difference()` returns one:
+
+```{r}
+data.frame(
+  qoi = c("median", "mean"),
+  baseline = c(fd_median$baseline, fd_mean$baseline),
+  first_difference = c(fd_median$fd, fd_mean$fd),
+  lower = c(fd_median$quantiles[1], fd_mean$quantiles[1]),
+  upper = c(fd_median$quantiles[2], fd_mean$quantiles[2])
+)
+```
+
+The same ten percent increase produces a different absolute difference depending
+on where it starts:
+
+```{r}
+c(from_10_to_11 = get_first_difference(res3, which_scenarios = c(1, 2))$fd,
+  from_10_to_20 = get_first_difference(res3, which_scenarios = c(1, 3))$fd)
+```
+
+# A proportional counterfactual on the observed sample
+
+Setting every observation to the same value of `speed` is a strange
+counterfactual under an elasticity. `multiplier` shifts each observation
+proportionally instead, within the observed value approach:
+
+```{r}
+ov <- simloglm(fit,
+               multiplier = list(speed = c(1, 1.1)),
+               observed_value_approach = TRUE,
+               verbose = FALSE)
+
+get_summary(ov)
+get_ratio(ov)$ratio
+```
+
+Because `log(1.1 * x) = log(1.1) + log(x)`, a proportional shift of a logged
+variable is a constant shift on the log scale, so this ratio again recovers
+`1.1^beta`, averaged over the observed sample.

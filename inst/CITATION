@@ -1,0 +1,20 @@
+citHeader("To cite simloglm in publications use:")
+
+bibentry(
+  bibtype = "Manual",
+  title   = "simloglm: Simulate Correct Quantities of Interest from Linear Models with Logged Dependent Variables",
+  author  = c(person("Marcel", "Neunhoeffer"),
+              person("Oliver", "Rittmann")),
+  year    = "2026",
+  note    = "R package version 0.1.0",
+  url     = "https://github.com/mneunhoe/simloglm"
+)
+
+bibentry(
+  bibtype = "Unpublished",
+  title   = "How to Improve the Substantive Interpretation of Regression Results when the Dependent Variable is logged",
+  author  = c(person("Marcel", "Neunhoeffer"),
+              person("Oliver", "Rittmann")),
+  year    = "2026",
+  note    = "Working paper"
+)
