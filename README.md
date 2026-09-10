@@ -8,9 +8,15 @@
 
 The goal of simloglm is to provide functions to simulate the correct
 quantities of interest from linear regression models with logged
-dependent variables. This package accompanies the paper “How to Improve
-the Substantive Interpretation of Regression Results when the Dependent
-Variable is logged”.
+dependent variables.
+
+This package implements the method of Rittmann, Neunhoeffer and Gschwend
+(2025), “How to improve the substantive interpretation of regression
+results when the dependent variable is logged”, *Political Science
+Research and Methods* 13(1), 203-211,
+[doi:10.1017/psrm.2023.29](https://doi.org/10.1017/psrm.2023.29). Please
+cite the paper if you use the package; `citation("simloglm")` gives both
+entries.
 
 ## Installation
 
@@ -44,8 +50,8 @@ get_summary(simulation_results_scenario, which_qoi = "median")
 #> 
 #> $quantiles
 #>       speed = 5 speed = 10 speed = 20
-#> 2.5%    7.22159   14.63705   50.52883
-#> 97.5%  12.84772   21.27112   71.01941
+#> 2.5%   7.441771   15.01115   50.93895
+#> 97.5% 12.797557   21.43647   70.65092
 #> 
 #> attr(,"class")
 #> [1] "summary_simloglm"
@@ -56,8 +62,8 @@ get_summary(simulation_results_scenario, which_qoi = "mean")
 #> 
 #> $quantiles
 #>       speed = 5 speed = 10 speed = 20
-#> 2.5%    8.04516   16.31519   56.53885
-#> 97.5%  14.43019   24.05435   80.11661
+#> 2.5%   8.267645   16.62248   56.63543
+#> 97.5% 14.399528   23.96635   79.48862
 #> 
 #> attr(,"class")
 #> [1] "summary_simloglm"

@@ -1,8 +1,8 @@
 ---
-title: "monte_carlo_coverage"
+title: "Monte Carlo coverage"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{monte_carlo_coverage}
+  %\VignetteIndexEntry{Monte Carlo coverage}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

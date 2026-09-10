@@ -1,8 +1,8 @@
 ---
-title: "interaction_example"
+title: "Interactions"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{interaction_example}
+  %\VignetteIndexEntry{Interactions}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

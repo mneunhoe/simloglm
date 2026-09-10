@@ -1,0 +1,61 @@
+# --------------------------------------------
+# CITATION file created with {cffr} R package
+# See also: https://docs.ropensci.org/cffr/
+# --------------------------------------------
+ 
+cff-version: 1.2.0
+message: 'To cite package "simloglm" in publications use:'
+type: software
+license: MIT
+title: 'simloglm: Simulate Correct Quantities of Interest from Linear Models with
+  Logged Dependent Variables'
+version: 0.1.0
+abstract: Functions to simulate the correct quantities of interest from linear regression
+  models with logged dependent variables, implementing the method of Rittmann, Neunhoeffer
+  and Gschwend (2025) <https://doi.org/10.1017/psrm.2023.29>.
+authors:
+- family-names: Neunhoeffer
+  given-names: Marcel
+  email: marcel.neunhoeffer@stat.uni-muenchen.de
+- family-names: Rittmann
+  given-names: Oliver
+  email: orittman@mail.uni-mannheim.de
+preferred-citation:
+  type: article
+  title: How to improve the substantive interpretation of regression results when
+    the dependent variable is logged
+  authors:
+  - family-names: Rittmann
+    given-names: Oliver
+    email: orittman@mail.uni-mannheim.de
+  - family-names: Neunhoeffer
+    given-names: Marcel
+    email: marcel.neunhoeffer@stat.uni-muenchen.de
+  - family-names: Gschwend
+    given-names: Thomas
+  journal: Political Science Research and Methods
+  year: '2025'
+  volume: '13'
+  issue: '1'
+  doi: 10.1017/psrm.2023.29
+  start: '203'
+  end: '211'
+repository-code: https://github.com/mneunhoe/simloglm
+url: https://github.com/mneunhoe/simloglm
+contact:
+- family-names: Neunhoeffer
+  given-names: Marcel
+  email: marcel.neunhoeffer@stat.uni-muenchen.de
+references:
+- type: manual
+  title: 'simloglm: Simulate Correct Quantities of Interest from Linear Models with
+    Logged Dependent Variables'
+  authors:
+  - family-names: Neunhoeffer
+    given-names: Marcel
+  - family-names: Rittmann
+    given-names: Oliver
+  year: '2026'
+  notes: R package version 0.1.0
+  url: https://github.com/mneunhoe/simloglm
+

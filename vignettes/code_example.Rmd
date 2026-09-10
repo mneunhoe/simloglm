@@ -1,8 +1,8 @@
 ---
-title: "code_example"
+title: "A worked example, by hand and with simloglm"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{code_example}
+  %\VignetteIndexEntry{A worked example, by hand and with simloglm}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -2,7 +2,7 @@
 title: "Replication of Shepherd/You 2020"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{shepherd_you_replication}
+  %\VignetteIndexEntry{Replication of Shepherd/You 2020}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 library(simloglm)
 ```
 
-```{r Useful functions}
+```{r useful-functions}
 # Clustered Standard Errors
 # Function according to Arai:
 
@@ -57,7 +57,7 @@ shift_qoi <- function(sim_obj, offset) {
 ```
 
 
-```{r Data preprocessing}
+```{r data-preprocessing}
 df <- simloglm::shepherd_you_2020
 
 df$ln_meansalary <- log(df$meansalary + 1)
@@ -72,7 +72,7 @@ df$lnssbill <- log(df$ss_bills + 1)
 
 ```
 
-```{r Model, results='hide'}
+```{r model, results='hide'}
 # Define the Model Formulas
 
 member_char1 <-
@@ -189,7 +189,7 @@ results_aca <-
 
 # Results with average case approach
 
-```{r Average Case Plot, fig.width=5* (1 + sqrt(5)) / 2, fig.height=5, fig.path="shepherd_you_figures/", dev = c("png","pdf"), warning=FALSE}
+```{r average-case-plot, fig.width=5* (1 + sqrt(5)) / 2, fig.height=5, fig.path="shepherd_you_figures/", dev = c("png","pdf"), warning=FALSE}
 # Summarize results
 # First undo the offset of the log(les + 1) transformation
 results_aca_retransformed <- shift_qoi(results_aca, -1)
@@ -477,7 +477,7 @@ points(percent_increase_aca_99$ratio-1, 1, pch = 124, col = viridis::viridis(2)[
 
 
 
-```{r Results in text}
+```{r results-in-text}
 # Average case result
 percent_increase_aca_95
 

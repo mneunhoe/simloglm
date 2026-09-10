@@ -11,9 +11,11 @@ Authors@R: c(
            role = "aut",
            email = "orittman@mail.uni-mannheim.de"))
 Description: Functions to simulate the correct quantities of interest from
-    linear regression models with logged dependent variables. Accompanies the
-    paper "How to Improve the Substantive Interpretation of Regression Results
-    when the Dependent Variable is logged".
+    linear regression models with logged dependent variables, implementing the
+    method of Rittmann, Neunhoeffer and Gschwend (2025)
+    <doi:10.1017/psrm.2023.29>.
+URL: https://github.com/mneunhoe/simloglm
+BugReports: https://github.com/mneunhoe/simloglm/issues
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

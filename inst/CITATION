@@ -1,20 +1,32 @@
-citHeader("To cite simloglm in publications use:")
+citHeader("To cite simloglm in publications, cite the paper. Cite the\nsoftware as well if the implementation itself matters:")
+
+# Track the installed version and its release year rather than hardcoding them.
+version <- meta$Version
+year <- sub("-.*", "", meta$Date)
+if (length(year) == 0 || is.na(year) || !nzchar(year)) {
+  year <- format(Sys.Date(), "%Y")
+}
+
+bibentry(
+  bibtype = "Article",
+  title   = "How to improve the substantive interpretation of regression results when the dependent variable is logged",
+  author  = c(person("Oliver", "Rittmann"),
+              person("Marcel", "Neunhoeffer"),
+              person("Thomas", "Gschwend")),
+  journal = "Political Science Research and Methods",
+  year    = "2025",
+  volume  = "13",
+  number  = "1",
+  pages   = "203--211",
+  doi     = "10.1017/psrm.2023.29"
+)
 
 bibentry(
   bibtype = "Manual",
   title   = "simloglm: Simulate Correct Quantities of Interest from Linear Models with Logged Dependent Variables",
   author  = c(person("Marcel", "Neunhoeffer"),
               person("Oliver", "Rittmann")),
-  year    = "2026",
-  note    = "R package version 0.1.0",
+  year    = year,
+  note    = paste("R package version", version),
   url     = "https://github.com/mneunhoe/simloglm"
-)
-
-bibentry(
-  bibtype = "Unpublished",
-  title   = "How to Improve the Substantive Interpretation of Regression Results when the Dependent Variable is logged",
-  author  = c(person("Marcel", "Neunhoeffer"),
-              person("Oliver", "Rittmann")),
-  year    = "2026",
-  note    = "Working paper"
 )
